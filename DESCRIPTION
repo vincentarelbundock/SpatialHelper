@@ -1,0 +1,15 @@
+Package: btergmHelper
+Title: What the Package Does (one line, title case)
+Version: 0.0.1
+Authors@R: person("Vincent", "Arel-Bundock", email = "vincent.arel-bundock@umontreal.ca", role = c("aut", "cre"))
+Description: Converts data.frames to network objects which can be used for estimation by the btergm package
+Depends: R (>= 3.4.0)
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+URL: https://github.com/vincentarelbundock/btergmHelper
+BugReports: https://github.com/vincentarelbundock/btergmHelper/issues
+Imports: 
+    btergm (>= 1.9.0),
+    tidyverse (>= 1.2.0)
+RoxygenNote: 6.0.1
