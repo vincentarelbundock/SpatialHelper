@@ -11,5 +11,6 @@ URL: https://github.com/vincentarelbundock/btergmHelper
 BugReports: https://github.com/vincentarelbundock/btergmHelper/issues
 Imports: 
     btergm (>= 1.9.0),
-    tidyverse (>= 1.2.0)
+    testthat (>= 1.0.2),
+    tidyverse (>= 1.1.0)
 RoxygenNote: 6.0.1

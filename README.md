@@ -1,13 +1,19 @@
 # Example
 
-```r
+Load some libraries:
+
+```R
 library(devtools)
 devtools::install_github('vincentarelbundock/btergmHelper')
 
 library(tidyverse)
 library(btergm)
 library(btergmHelper)
+```
 
+Simulate two test datasets. `unit_time` is a unit/time panel data.frame, with vertex attributes. `dyad_time` is a directed-dyad/time data.frame, where variables will serve as endogenous or exogenous networks in the estimation. Note that the `unit`, `unit1`, `unit2`, and `time` column names are hard-coded in the helper functions; they *must* be present in the data.frames.
+
+```R
 unit = letters
 time = 1:10
 unit_time = expand.grid('unit' = unit, 'time' = time, stringsAsFactors = FALSE) %>% 
@@ -35,9 +41,16 @@ dyad_time = expand.grid('unit1' = unit, 'unit2' = unit, 'time' = time, stringsAs
 4     d     a    1 -0.7798457 -0.09711169 0
 5     e     a    1 -1.5351066 -0.69116781 0
 6     f     a    1  1.7755478 -0.43492290 1
+```
 
-library(btergm)
-env = df_to_net(endo_net = 'z', unit_time, dyad_time, directed = FALSE)
+The `df_to_net` function takes data.frames as input and produces an "environment" which includes all the objects required for estimation. Just attach that environment and run `btergm`. `df_to_net` takes only 3 arguments (`endo_net`, `unit_time`, `dyad_time`), and will pass any extra argument to the ``network::network`` function that is used under the hood to produce network objects. Here, we add `directed` and `loops` options:
+
+```R
+env = df_to_net(endo_net = 'z', 
+                unit_time = unit_time, 
+                dyad_time = dyad_time,
+                directed = FALSE,
+                loops = FALSE)
 attach(env)
 f = net  ~ edges + twopath + nodecov('x') + nodecov('k') + edgecov(w)
 mod = btergm(f, R = 500)
