@@ -4,7 +4,7 @@
 \alias{df_to_mat}
 \title{Converts data.frames to matrices amenable to network analysis with btergm}
 \usage{
-df_to_mat(unit_time, dyad_time)
+df_to_mat(unit_time, dyad_time, cores = 1)
 }
 \arguments{
 \item{unit_time}{data.frame unit/time dataset with columns named `unit`,
@@ -13,6 +13,8 @@ df_to_mat(unit_time, dyad_time)
 \item{dyad_time}{data.frame dyadic dataset with columns named `unit1`,
 `unit2`, `time`. Additional columns are used to create the endogenous and
 exogenous networks}
+
+\item{cores}{integer number of cores to use for computation with mclapply}
 }
 \description{
 Converts data.frames to matrices amenable to network analysis with btergm

@@ -69,9 +69,13 @@ prep_dyad = function(dyad_cs) {
     return(out)
 }
 
-prep_dyads = function(dyad_time) {
+prep_dyads = function(dyad_time, cores = 1) {
     out = split(dyad_time, dyad_time$time) 
-    out = lapply(out, prep_dyad)
+    if (cores > 1) {
+        out = mclapply(out, prep_dyad, mc.cores = cores)
+    } else {
+        out = lapply(out, prep_dyad)
+    }
     return(out)
 }
 
@@ -98,11 +102,12 @@ mat_to_net = function(dv, iv, ...) {
 #' exogenous networks
 #' @param unit_time data.frame unit/time dataset with columns named `unit`,
 #' `time`. Additional columns are vertex attributes
+#' @param cores integer number of cores to use for computation with mclapply
 #' @examples
 #' # Examples are in the README file at
 #' http://github.com/vincentarelbundock/btergmHelper
 #' @export
-df_to_mat = function(unit_time, dyad_time) {
+df_to_mat = function(unit_time, dyad_time, cores = 1) {
     # sanity checks
     sanity_unit_time(unit_time)
     sanity_dyad_time(dyad_time)
@@ -133,7 +138,7 @@ df_to_mat = function(unit_time, dyad_time) {
                 dplyr::arrange(unit, time) %>%
                 dplyr::select(unit, time, order(names(.)))
     # df to matrices
-    dyad_time = prep_dyads(dyad_time)
+    dyad_time = prep_dyads(dyad_time, cores = cores)
 	unit_time = prep_attributes(unit_time)
 	# sanity checks
     testthat::test_that("IV and DV are aligned.", {
