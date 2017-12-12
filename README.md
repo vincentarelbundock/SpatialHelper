@@ -43,14 +43,11 @@ dyad_time = expand.grid('unit1' = unit, 'unit2' = unit, 'time' = time, stringsAs
 6     f     a    1  1.7755478 -0.43492290 1
 ```
 
-The `df_to_net` function takes data.frames as input and produces an "environment" which includes all the objects required for estimation. Just attach that environment and run `btergm`. `df_to_net` takes only 3 arguments (`endo_net`, `unit_time`, `dyad_time`), and will pass any extra argument to the ``network::network`` function that is used under the hood to produce network objects. Here, we add `directed` and `loops` options:
+The `df_to_mat` function takes data.frames as input and produces an "environment" which includes all the objects required for estimation. Just attach that environment and run `btergm`. `df_to_mat` takes only 2 arguments (`unit_time`, `dyad_time`). Then, we create a network object with whichever list of matrices we want to use. Note that the `mat_to_net` function will pass any extra argument to the ``network::network`` function that is used under the hood to produce network objects. Here, we add `directed` and `loops` options:
 
 ```R
-env = df_to_net(endo_net = 'z', 
-                unit_time = unit_time, 
-                dyad_time = dyad_time,
-                directed = FALSE,
-                loops = FALSE)
+env = df_to_mat(unit_time, dyad_time)
+env$net = mat_to_net(dv = env$z, iv = env$vertex.attributes)
 attach(env)
 f = net  ~ edges + twopath + nodecov('x') + nodecov('k') + edgecov(w)
 mod = btergm(f, R = 500)

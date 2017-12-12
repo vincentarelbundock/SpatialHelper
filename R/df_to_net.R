@@ -1,43 +1,43 @@
 sanity_unit_time = function(unit_time) {
-    test_that("Data.frame includes columns: 'unit', 'time'", {
+    testthat::test_that("Data.frame includes columns: 'unit', 'time'", {
         expect_true('unit' %in% colnames(unit_time))
         expect_true('time' %in% colnames(unit_time))
     })
-    test_that("'unit' and 'time' columns cannot be a factors", {
+    testthat::test_that("'unit' and 'time' columns cannot be a factors", {
         expect_false(class(unit_time$unit)[1] == 'factor')
         expect_false(class(unit_time$time)[1] == 'factor')
     })
-    test_that("Unique Unit-Year indices", {
+    testthat::test_that("Unique Unit-Year indices", {
         idx = unit_time[, c('unit', 'time')]
         idx = unique(idx)
         expect_equal(nrow(idx), nrow(unit_time))
     })
-    test_that("Panel data is rectangular", {
+    testthat::test_that("Panel data is rectangular", {
         expect_equal(nrow(unit_time), 
                      length(unique(unit_time$unit)) * length(unique(unit_time$time)))
     })
 }
 
 sanity_dyad_time = function(dyad_time) {
-    test_that("Data.frame includes the following columns: 'unit1', 'unit2', 'time'", {
+    testthat::test_that("Data.frame includes the following columns: 'unit1', 'unit2', 'time'", {
         expect_true('unit1' %in% colnames(dyad_time))
         expect_true('unit2' %in% colnames(dyad_time))
         expect_true('time' %in% colnames(dyad_time))
     })
-    test_that("'unit1', 'unit2', and 'time' columns cannot be factors", {
+    testthat::test_that("'unit1', 'unit2', and 'time' columns cannot be factors", {
         expect_false(class(dyad_time$unit1)[1] == 'factor')
         expect_false(class(dyad_time$unit2)[1] == 'factor')
         expect_false(class(dyad_time$time)[1] == 'factor')
     })
-    test_that("'unit1' and 'unit2' are of the same type", {
+    testthat::test_that("'unit1' and 'unit2' are of the same type", {
         expect_true(class(dyad_time$unit1)[1] == class(dyad_time$unit1)[1])
     })
-    test_that("Unique Unit1-Unit2-Year indices", {
+    testthat::test_that("Unique Unit1-Unit2-Year indices", {
         idx = dyad_time[, c('unit1', 'unit2', 'time')]
         idx = unique(idx)
         expect_equal(nrow(idx), nrow(dyad_time))
     })
-    test_that("Dyadic panel data is rectangular", {
+    testthat::test_that("Dyadic panel data is rectangular", {
         a = length(unique(dyad_time$unit1))
         b = length(unique(dyad_time$unit2))
         d = length(unique(dyad_time$time))
@@ -75,32 +75,38 @@ prep_dyads = function(dyad_time) {
     return(out)
 }
 
-prep_network = function(dv, iv, ...) {
-	out = lapply(seq_along(dv), function(i)
-				 network::network(x = dv[[i]],
-								  vertex.attr = iv[[i]],
-								  vertex.attrnames = names(iv[[i]]), ...))
+#' Converts a list of matrices and vertex attributes to a dependent network for
+#' btergm
+#' @param dv list of matrix stored in the environment produced by `df_to_mat`
+#' @param iv list of vertex attributes stored in the `vertex.attributes` object
+#' in the environment produced by `df_to_mat`
+#' @note unnamed arguments (e.g., `directed`, `loops`) will be passed to the
+#' `network::network` function that is used under the hood to create network
+#' objects.
+#' @export
+mat_to_net = function(dv, iv, ...) {
+    out = lapply(seq_along(dv), function(i)
+                 network::network(x = dv[[i]],
+                                  vertex.attr = iv[[i]],
+                                  vertex.attrnames = names(iv[[i]]), ...))
     return(out)
 }
 
-#' Align and subset matrices using a vector of unit names
-#' @param endo_net character name of the dependent variable (from `dyad_time`)
+#' Converts data.frames to matrices amenable to network analysis with btergm
 #' @param dyad_time data.frame dyadic dataset with columns named `unit1`,
 #' `unit2`, `time`. Additional columns are used to create the endogenous and
 #' exogenous networks
 #' @param unit_time data.frame unit/time dataset with columns named `unit`,
 #' `time`. Additional columns are vertex attributes
-#' @note unnamed arguments (e.g., `directed`, `loops`) will be passed to the
-#' `network::network` function
 #' @examples
 #' # Examples are in the README file at
 #' http://github.com/vincentarelbundock/btergmHelper
 #' @export
-df_to_net = function(endo_net, unit_time, dyad_time, ...) {
+df_to_mat = function(unit_time, dyad_time) {
     # sanity checks
     sanity_unit_time(unit_time)
     sanity_dyad_time(dyad_time)
-    test_that("Indices in the two datasets are of compatible types", {
+    testthat::test_that("Indices in the two datasets are of compatible types", {
         expect_true(class(dyad_time$unit1)[1] == class(unit_time$unit)[1])
         expect_true(class(dyad_time$time)[1] == class(unit_time$time)[1])
     })
@@ -130,12 +136,12 @@ df_to_net = function(endo_net, unit_time, dyad_time, ...) {
     dyad_time = prep_dyads(dyad_time)
 	unit_time = prep_attributes(unit_time)
 	# sanity checks
-    test_that("IV and DV are aligned.", {
+    testthat::test_that("IV and DV are aligned.", {
 		for (i in seq_along(dyad_time)) {
 	        expect_true(all(colnames(dyad_time[[i]][[1]]) == unit_time[[i]]$unit))
 		}
     })
-    test_that("IV and DV have the same number of time periods", {
+    testthat::test_that("IV and DV have the same number of time periods", {
 	    expect_true(length(dyad_time) == length(unit_time))
     })
 	# output
@@ -144,6 +150,6 @@ df_to_net = function(endo_net, unit_time, dyad_time, ...) {
 	for (v in vars) {
 		env[[v]] = lapply(seq_along(dyad_time), function(i) dyad_time[[i]][[v]])
 	}
-	env[['net']] = prep_network(env[[endo_net]], unit_time, ...)
+    env[['vertex.attributes']] = unit_time
     return(env)
 }
