@@ -43,7 +43,14 @@ dyad_time = expand.grid('unit1' = unit, 'unit2' = unit, 'time' = time, stringsAs
 6     f     a    1  1.7755478 -0.43492290 1
 ```
 
-The `df_to_mat` function takes data.frames as input and produces an "environment" which includes all the objects required for estimation. Just attach that environment and run `btergm`. `df_to_mat` takes only 2 arguments (`unit_time`, `dyad_time`). Then, we create a network object with whichever list of matrices we want to use. Note that the `mat_to_net` function will pass any extra argument to the ``network::network`` function that is used under the hood to produce network objects. Here, we add `directed` and `loops` options:
+To convert these two data.frames to network objects, we proceed in three steps:
+
+1. The `df_to_mat` function takes the data.frames as input and produces an R "environment" which includes all the objects required for estimation.
+    - Vertex attributes from the `unit_time` data.frame are held in `env$vertex.attributes`
+    - Exogenous time-varying network data (i.e., lists of matrices constructed from columns in `dyad_time`) are held as their own objects in the environment (e.g., `env$z`)
+2. Use the `mat_to_net` function to create an endogenous network (i.e., your dependent variable) using whichever exogenous network object included in environment. 
+    - Note that the `mat_to_net` function will pass any extra argument to the ``network::network`` function that is used under the hood to produce network objects. Here, we add `directed` and `loops` options.
+3. Attach that environment so that all objects become available for the `btergm` function. 
 
 ```R
 env = df_to_mat(unit_time, dyad_time)
