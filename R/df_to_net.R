@@ -1,48 +1,48 @@
 sanity_unit_time = function(unit_time) {
     testthat::test_that("Data.frame includes columns: 'unit', 'time'", {
-        expect_true('unit' %in% colnames(unit_time))
-        expect_true('time' %in% colnames(unit_time))
+        testthat::expect_true('unit' %in% colnames(unit_time))
+        testthat::expect_true('time' %in% colnames(unit_time))
     })
     testthat::test_that("'unit' and 'time' columns cannot be a factors", {
-        expect_false(class(unit_time$unit)[1] == 'factor')
-        expect_false(class(unit_time$time)[1] == 'factor')
+        testthat::expect_false(class(unit_time$unit)[1] == 'factor')
+        testthat::expect_false(class(unit_time$time)[1] == 'factor')
     })
     testthat::test_that("Unique Unit-Year indices", {
         idx = unit_time[, c('unit', 'time')]
         idx = unique(idx)
-        expect_equal(nrow(idx), nrow(unit_time))
+        testthat::expect_equal(nrow(idx), nrow(unit_time))
     })
     testthat::test_that("Panel data is rectangular", {
-        expect_equal(nrow(unit_time), 
+        testthat::expect_equal(nrow(unit_time), 
                      length(unique(unit_time$unit)) * length(unique(unit_time$time)))
     })
 }
 
 sanity_dyad_time = function(dyad_time) {
     testthat::test_that("Data.frame includes the following columns: 'unit1', 'unit2', 'time'", {
-        expect_true('unit1' %in% colnames(dyad_time))
-        expect_true('unit2' %in% colnames(dyad_time))
-        expect_true('time' %in% colnames(dyad_time))
+        testthat::expect_true('unit1' %in% colnames(dyad_time))
+        testthat::expect_true('unit2' %in% colnames(dyad_time))
+        testthat::expect_true('time' %in% colnames(dyad_time))
     })
     testthat::test_that("'unit1', 'unit2', and 'time' columns cannot be factors", {
-        expect_false(class(dyad_time$unit1)[1] == 'factor')
-        expect_false(class(dyad_time$unit2)[1] == 'factor')
-        expect_false(class(dyad_time$time)[1] == 'factor')
+        testthat::expect_false(class(dyad_time$unit1)[1] == 'factor')
+        testthat::expect_false(class(dyad_time$unit2)[1] == 'factor')
+        testthat::expect_false(class(dyad_time$time)[1] == 'factor')
     })
     testthat::test_that("'unit1' and 'unit2' are of the same type", {
-        expect_true(class(dyad_time$unit1)[1] == class(dyad_time$unit1)[1])
+        testthat::expect_true(class(dyad_time$unit1)[1] == class(dyad_time$unit1)[1])
     })
     testthat::test_that("Unique Unit1-Unit2-Year indices", {
         idx = dyad_time[, c('unit1', 'unit2', 'time')]
         idx = unique(idx)
-        expect_equal(nrow(idx), nrow(dyad_time))
+        testthat::expect_equal(nrow(idx), nrow(dyad_time))
     })
-    testthat::test_that("Dyadic panel data is rectangular", {
+    testthat::test_that("Dyadic panel data is rectangular and directed", {
         a = length(unique(dyad_time$unit1))
         b = length(unique(dyad_time$unit2))
         d = length(unique(dyad_time$time))
         x = a * b * d
-        expect_equal(nrow(dyad_time), x)
+        testthat::expect_equal(nrow(dyad_time), x)
     })
 }
 
@@ -112,8 +112,8 @@ df_to_mat = function(unit_time, dyad_time, cores = 1) {
     sanity_unit_time(unit_time)
     sanity_dyad_time(dyad_time)
     testthat::test_that("Indices in the two datasets are of compatible types", {
-        expect_true(class(dyad_time$unit1)[1] == class(unit_time$unit)[1])
-        expect_true(class(dyad_time$time)[1] == class(unit_time$time)[1])
+        testthat::expect_true(class(dyad_time$unit1)[1] == class(unit_time$unit)[1])
+        testthat::expect_true(class(dyad_time$time)[1] == class(unit_time$time)[1])
     })
     # common units
     units_dyad = c(dyad_time$unit1, dyad_time$unit2)
@@ -143,11 +143,11 @@ df_to_mat = function(unit_time, dyad_time, cores = 1) {
 	# sanity checks
     testthat::test_that("IV and DV are aligned.", {
 		for (i in seq_along(dyad_time)) {
-	        expect_true(all(colnames(dyad_time[[i]][[1]]) == unit_time[[i]]$unit))
+            testthat::expect_true(all(colnames(dyad_time[[i]][[1]]) == unit_time[[i]]$unit))
 		}
     })
     testthat::test_that("IV and DV have the same number of time periods", {
-	    expect_true(length(dyad_time) == length(unit_time))
+	    testthat::expect_true(length(dyad_time) == length(unit_time))
     })
 	# output
 	env = new.env()
