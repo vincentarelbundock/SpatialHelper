@@ -1,4 +1,7 @@
 sanity_unit_time = function(unit_time) {
+    testthat::test_that("`unit_time` is a data.frame (i.e., not a tibble, tbl)", {
+        testthat::expect_true(class(unit_time)[1] == 'data.frame')
+    })
     testthat::test_that("Data.frame includes columns: 'unit', 'time'", {
         testthat::expect_true('unit' %in% colnames(unit_time))
         testthat::expect_true('time' %in% colnames(unit_time))
@@ -19,6 +22,9 @@ sanity_unit_time = function(unit_time) {
 }
 
 sanity_dyad_time = function(dyad_time) {
+    testthat::test_that("`dyad_time` is a data.frame (i.e., not a tibble, tbl)", {
+        testthat::expect_true(class(unit_time)[1] == 'data.frame')
+    })
     testthat::test_that("Data.frame includes the following columns: 'unit1', 'unit2', 'time'", {
         testthat::expect_true('unit1' %in% colnames(dyad_time))
         testthat::expect_true('unit2' %in% colnames(dyad_time))
