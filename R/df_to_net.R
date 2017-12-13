@@ -1,4 +1,4 @@
-sanity_check = function(unit_time) {
+sanity_check = function(unit_time, dyad_time) {
     testthat::test_that("Input data are in a data.frame (not a tibble, matrix, etc.)", {
         testthat::expect_true(class(unit_time)[1] == 'data.frame')
         testthat::expect_true(class(dyad_time)[1] == 'data.frame')
@@ -69,7 +69,7 @@ prep_dyad = function(dyad_cs) {
 prep_dyads = function(dyad_time, cores = 1) {
     out = split(dyad_time, dyad_time$time) 
     if (cores > 1) {
-        out = mclapply(out, prep_dyad, mc.cores = cores)
+        out = parallel::mclapply(out, prep_dyad, mc.cores = cores)
     } else {
         out = lapply(out, prep_dyad)
     }

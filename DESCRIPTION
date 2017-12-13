@@ -12,5 +12,6 @@ BugReports: https://github.com/vincentarelbundock/btergmHelper/issues
 Imports: 
     btergm (>= 1.9.0),
     testthat (>= 1.0.2),
+    parallel (>= 3.4.3),
     tidyverse (>= 1.1.0)
 RoxygenNote: 6.0.1
