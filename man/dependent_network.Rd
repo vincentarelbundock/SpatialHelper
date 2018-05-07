@@ -2,8 +2,8 @@
 % Please edit documentation in R/panel_to_network.R
 \name{dependent_network}
 \alias{dependent_network}
-\title{Converts a list of matrices and vertex attributes to a dependent network for
-btergm}
+\title{Identifies the network object that will serve as dependent (endogenous)
+network in the `btergm` analysis.}
 \usage{
 dependent_network(network_dependent, network_environment, ...)
 }
@@ -16,8 +16,8 @@ function.}
 \item{...}{arguments will be passed to the network::network function.}
 }
 \description{
-Converts a list of matrices and vertex attributes to a dependent network for
-btergm
+Identifies the network object that will serve as dependent (endogenous)
+network in the `btergm` analysis.
 }
 \note{
 unnamed arguments (e.g., `directed`, `loops`) will be passed to the

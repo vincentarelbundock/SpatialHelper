@@ -1,7 +1,13 @@
-sanity_check = function(unit_time, dyad_time) {
+sanity_check_pre = function(unit_time, dyad_time) {
     if ((!class(unit_time)[1] == 'data.frame') |
         (!class(dyad_time)[1] == 'data.frame')) {
         stop("Input data are in data.frames (not tibble, matrix, etc.)")
+    }
+    if (any(is.na(unit_time))) {
+        warning('unit_time contains missing values.')
+    }
+    if (any(is.na(dyad_time))) {
+        warning('dyad_time contains missing values.')
     }
     if ((!'unit' %in% colnames(unit_time)) |
         (!'time' %in% colnames(unit_time))) {
@@ -79,6 +85,21 @@ sanity_check = function(unit_time, dyad_time) {
     return(out)
 }
 
+sanity_check_post = function(network_environment) {
+    # alignment
+    for (n in names(network_environment)) {
+        if (n != 'vertex.attributes') {
+            for (i in seq_along(network_environment[[n]])) {
+                fail1 = any(colnames(network_environment[[n]][[i]]) != names(network_environment[['vertex.attributes']][[i]]$unit))
+                fail2 = any(row.names(network_environment[[n]][[i]]) != names(network_environment[['vertex.attributes']][[i]]$unit))
+                if (fail1 | fail2) {
+                    stop('Panel and Dyadic data are not properly aligned.')
+                }
+            }
+        }
+    }
+}
+
 prep_attributes = function(unit_time) {
     out = split(unit_time, unit_time$time) 
     out = lapply(out, as.list)
@@ -112,24 +133,26 @@ prep_variable = function(dyad_crosssection, v) {
     return(out)
 }
 
-#' Converts data.frames to matrices amenable to network analysis with btergm
+#' Converts data.frames to objects amenable to network analysis using `btergm`
 #' @param dyad_time data.frame dyadic dataset with columns named `unit1`,
 #' `unit2`, `time`. Additional columns are edge attributes. 
 #' @param unit_time data.frame unit/time dataset with columns named `unit`,
 #' `time`. Additional columns are vertex attributes
 #' @param cores integer number of cores to use for computation with mclapply
+#' @param verbose print progress report if TRUE
 #' @examples
 #' # Examples are in the README file at
 #' http://github.com/vincentarelbundock/btergmHelper
 #' @export
-panel_to_network = function(unit_time, dyad_time, cores = 1) {
-
-    # sanity checks
-    idx = sanity_check(unit_time, dyad_time)
+panel_to_network = function(unit_time, dyad_time, cores = 1, verbose = TRUE) {
+    # sanity checks pre
+    if (verbose) cat('Sanity checks...\n')
+    idx = sanity_check_pre(unit_time, dyad_time)
     units = idx$common_units
     times = idx$common_times
 
     # subset and sort
+    if (verbose) cat('Subsetting and ordering...\n')
     unit_time = unit_time[unit_time$unit %in% units,]
     unit_time = unit_time[unit_time$time %in% times,]
     unit_time = unit_time[order(unit_time$unit, unit_time$time),]
@@ -139,17 +162,13 @@ panel_to_network = function(unit_time, dyad_time, cores = 1) {
     dyad_time = dyad_time[order(dyad_time$unit1, dyad_time$unit2, dyad_time$time),]
 
     # df to matrices
+    if (verbose) cat('Edge attributes...\n')
     dyad_time = prep_dyads(dyad_time, cores = cores)
+    if (verbose) cat('Vertex attributes...\n')
 	unit_time = prep_attributes(unit_time)
 
-	# check if properly aligned
-    for (i in seq_along(dyad_time)) {
-        if (any(colnames(dyad_time[[i]][[1]]) != unit_time[[i]]$unit)) {
-            stop('Panel and Dyadic data are not properly aligned.')
-        }
-    }
-
-	# output
+	# prepare environment
+    if (verbose) cat('Environment...\n')
 	env = new.env()
     vars = names(dyad_time[[1]])
 	for (v in vars) {
@@ -157,11 +176,17 @@ panel_to_network = function(unit_time, dyad_time, cores = 1) {
 	}
     env[['vertex.attributes']] = unit_time
     class(env) = c(class(env), 'network_environment')
+
+    # sanity checks post
+    if (verbose) cat('More sanity checks...\n')
+    sanity_check_post(env)
+
+    # output
     return(env)
 }
 
-#' Converts a list of matrices and vertex attributes to a dependent network for
-#' btergm
+#' Identifies the network object that will serve as dependent (endogenous)
+#' network in the `btergm` analysis.
 #' @param network_dependent name of the dependent network (character)
 #' @param network_environment an environment produced by the panel_to_network
 #' function.

@@ -1,16 +1,23 @@
-# Example
-
-Load some libraries:
+Install from Github:
 
 ```R
 library(devtools)
 devtools::install_github('vincentarelbundock/btergmHelper')
+```
 
+Load libraries:
+
+```R
 library(btergm)
 library(btergmHelper)
 ```
 
-Simulate two test datasets. `unit_time` is a unit/time panel data.frame, with vertex attributes. `dyad_time` is a directed-dyad/time data.frame, where variables will serve as endogenous or exogenous networks in the estimation. Note that the `unit`, `unit1`, `unit2`, and `time` column names are hard-coded in the helper functions; they *must* be present in the data.frames.
+Simulate two test datasets:
+
+1.  `unit_time` is a unit/time panel data.frame with vertex attributes. 
+2. `dyad_time` is a directed-dyad/time data.frame, where variables will serve as endogenous or exogenous networks in the estimation. 
+
+Note that the `unit`, `unit1`, `unit2`, and `time` column names are hard-coded in the helper functions; they *must* be present in the data.frames.
 
 ```R
 unit = letters
@@ -57,7 +64,7 @@ Attach the environment and estimate the model:
 
 ```R
 attach(env)
-f = z  ~ edges + twopath + nodecov('x') + nodecov('k') + edgecov(w)
+f = z  ~ edges + twopath + nodecov('x') + nodecov('k') + edgecov(w) + istar(2)
 mod = btergm(f, R = 500)
 detach(env)
 

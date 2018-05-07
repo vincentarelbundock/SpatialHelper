@@ -2,9 +2,9 @@
 % Please edit documentation in R/panel_to_network.R
 \name{panel_to_network}
 \alias{panel_to_network}
-\title{Converts data.frames to matrices amenable to network analysis with btergm}
+\title{Converts data.frames to objects amenable to network analysis using `btergm`}
 \usage{
-panel_to_network(unit_time, dyad_time, cores = 1)
+panel_to_network(unit_time, dyad_time, cores = 1, verbose = TRUE)
 }
 \arguments{
 \item{unit_time}{data.frame unit/time dataset with columns named `unit`,
@@ -14,9 +14,11 @@ panel_to_network(unit_time, dyad_time, cores = 1)
 `unit2`, `time`. Additional columns are edge attributes.}
 
 \item{cores}{integer number of cores to use for computation with mclapply}
+
+\item{verbose}{print progress report if TRUE}
 }
 \description{
-Converts data.frames to matrices amenable to network analysis with btergm
+Converts data.frames to objects amenable to network analysis using `btergm`
 }
 \examples{
 # Examples are in the README file at
