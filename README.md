@@ -6,7 +6,6 @@ Load some libraries:
 library(devtools)
 devtools::install_github('vincentarelbundock/btergmHelper')
 
-library(tidyverse)
 library(btergm)
 library(btergmHelper)
 ```
@@ -16,13 +15,14 @@ Simulate two test datasets. `unit_time` is a unit/time panel data.frame, with ve
 ```R
 unit = letters
 time = 1:10
-unit_time = expand.grid('unit' = unit, 'time' = time, stringsAsFactors = FALSE) %>% 
-            mutate(x = rnorm(n()),
-                   k = rnorm(n()))
-dyad_time = expand.grid('unit1' = unit, 'unit2' = unit, 'time' = time, stringsAsFactors = FALSE) %>%
-            mutate(w = rnorm(n()),
-                   e = rnorm(n()),
-                   z = as.numeric(ifelse(w + e > 0, 1, 0)))
+unit_time = expand.grid('unit' = unit, 'time' = time, stringsAsFactors = FALSE) 
+unit_time$x = rnorm(nrow(unit_time))
+unit_time$k = rnorm(nrow(unit_time))
+
+dyad_time = expand.grid('unit1' = unit, 'unit2' = unit, 'time' = time, stringsAsFactors = FALSE) 
+dyad_time$w = rnorm(nrow(dyad_time))
+dyad_time$e = rnorm(nrow(dyad_time))
+dyad_time$z = as.numeric(ifelse(dyad_time$w + dyad_time$e > 0, 1, 0))
 
 > head(unit_time)
   unit time          x           k
@@ -66,7 +66,7 @@ detach(env)
 Summary of model fit
 ==========================
 
-Formula:   net ~ edges + twopath + nodecov("x") + nodecov("k") + edgecov(w) 
+Formula:   z ~ edges + twopath + nodecov("x") + nodecov("k") + edgecov(w) 
 
 Time steps: 10 
 
