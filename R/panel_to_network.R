@@ -78,25 +78,37 @@ prep_dyads = function(dyad_time, cores = 1) {
 
 #' Converts a list of matrices and vertex attributes to a dependent network for
 #' btergm
-#' @param dv list of matrix stored in the environment produced by `df_to_mat`
-#' @param iv list of vertex attributes stored in the `vertex.attributes` object
-#' in the environment produced by `df_to_mat`
+#' @param network_dependent name of the dependent network (character)
+#' @param network_environment an environment produced by the panel_to_network
+#' function.
+#' @param ... arguments will be passed to the network::network function.
 #' @note unnamed arguments (e.g., `directed`, `loops`) will be passed to the
 #' `network::network` function that is used under the hood to create network
 #' objects.
 #' @export
-mat_to_net = function(dv, iv, ...) {
-    out = lapply(seq_along(dv), function(i)
-                 network::network(x = dv[[i]],
-                                  vertex.attr = iv[[i]],
-                                  vertex.attrnames = names(iv[[i]]), ...))
+dependent_network = function(network_dependent, network_environment, ...) {
+    testthat::test_that("The network_environment was produced by the `panel_to_network` function.", {
+        testthat::expect_true('network_environment' %in% class(network_environment))
+    })
+    testthat::test_that("network_dependent is a string of length 1", {
+        testthat::expect_true(class(network_dependent)[1] == 'character')
+        testthat::expect_true(length(network_dependent) == 1)
+    })
+    testthat::test_that("network_dependent is available in the network_environment.", {
+        testthat::expect_true(network_dependent %in% names(network_environment))
+    })
+    tmp = lapply(seq_along(network_environment$vertex.attributes), function(i)
+                 network::network(x = network_environment[[network_dependent]][[i]],
+                                  vertex.attr = network_environment$vertex.attributes[[i]],
+                                  vertex.attrnames = names(network_environment$vertex.attributes[[i]]), ...))
+    out = network_environment
+    out[[network_dependent]] = tmp 
     return(out)
 }
 
 #' Converts data.frames to matrices amenable to network analysis with btergm
 #' @param dyad_time data.frame dyadic dataset with columns named `unit1`,
-#' `unit2`, `time`. Additional columns are used to create the endogenous and
-#' exogenous networks
+#' `unit2`, `time`. Additional columns are edge attributes. 
 #' @param unit_time data.frame unit/time dataset with columns named `unit`,
 #' `time`. Additional columns are vertex attributes
 #' @param cores integer number of cores to use for computation with mclapply
@@ -104,7 +116,7 @@ mat_to_net = function(dv, iv, ...) {
 #' # Examples are in the README file at
 #' http://github.com/vincentarelbundock/btergmHelper
 #' @export
-df_to_mat = function(unit_time, dyad_time, cores = 1) {
+panel_to_network = function(unit_time, dyad_time, cores = 1) {
     # sanity checks
     sanity_check(unit_time, dyad_time)
     # common units
@@ -148,5 +160,6 @@ df_to_mat = function(unit_time, dyad_time, cores = 1) {
 		env[[v]] = lapply(seq_along(dyad_time), function(i) dyad_time[[i]][[v]])
 	}
     env[['vertex.attributes']] = unit_time
+    class(env) = c(class(env), 'network_environment')
     return(env)
 }

@@ -43,20 +43,21 @@ dyad_time = expand.grid('unit1' = unit, 'unit2' = unit, 'time' = time, stringsAs
 6     f     a    1  1.7755478 -0.43492290 1
 ```
 
-To convert these two data.frames to network objects, we proceed in three steps:
-
-1. The `df_to_mat` function takes the data.frames as input and produces an R "environment" which includes all the objects required for estimation.
-    - Vertex attributes from the `unit_time` data.frame are held in `env$vertex.attributes`
-    - Exogenous time-varying network data (i.e., lists of matrices constructed from columns in `dyad_time`) are held as their own objects in the environment (e.g., `env$z`)
-2. Use the `mat_to_net` function to create an endogenous network (i.e., your dependent variable) using whichever exogenous network object included in environment. 
-    - Note that the `mat_to_net` function will pass any extra argument to the ``network::network`` function that is used under the hood to produce network objects. Here, we add `directed` and `loops` options.
-3. Attach that environment so that all objects become available for the `btergm` function. 
+Prepare the network data and store it inside an `environment` object:
 
 ```R
-env = df_to_mat(unit_time, dyad_time)
-env$net = mat_to_net(dv = env$z, iv = env$vertex.attributes)
+# Convert the panel data to network data inside an environment
+env = panel_to_network(unit_time, dyad_time)
+
+# Identify the dependent network
+env = dependent_network('z', env)
+```
+
+Attach the environment and estimate the model:
+
+```R
 attach(env)
-f = net  ~ edges + twopath + nodecov('x') + nodecov('k') + edgecov(w)
+f = z  ~ edges + twopath + nodecov('x') + nodecov('k') + edgecov(w)
 mod = btergm(f, R = 500)
 detach(env)
 
