@@ -15,7 +15,7 @@ sanity_check = function(unit_time, dyad_time) {
         testthat::expect_false(class(dyad_time$unit2)[1] == 'factor')
         testthat::expect_false(class(dyad_time$time)[1] == 'factor')
     })
-    testthat::test_that("Indices compatible.", {
+    testthat::test_that("Indices are compatible.", {
         testthat::expect_true(class(dyad_time$unit1)[1] == class(unit_time$unit)[1])
         testthat::expect_true(class(dyad_time$unit2)[1] == class(unit_time$unit)[1])
         testthat::expect_true(class(dyad_time$time)[1] == class(unit_time$time)[1])
@@ -41,6 +41,31 @@ sanity_check = function(unit_time, dyad_time) {
         x = a * b * d
         testthat::expect_equal(nrow(dyad_time), x)
     })
+    # common units
+    units_dyad = c(dyad_time$unit1, dyad_time$unit2)
+    units_unit = unit_time$unit
+    units_setdiff = sort(unique(c(setdiff(units_dyad, units_unit),
+                                  setdiff(units_unit, units_dyad))))
+    if (length(units_setdiff) > 0) {
+        msg = paste(units_setdiff, collapse = ', ')
+        warning(paste('The following units will be excluded because they do not appear in both the monadic and the dyadic data:', msg))
+    }
+    units = intersect(units_dyad, units_unit)
+    units = unique(units)
+    # common time
+    times_dyad = dyad_time$time
+    times_unit = unit_time$time
+    times = intersect(times_dyad, times_unit)
+    times = unique(times)
+    times_setdiff = sort(unique(c(setdiff(times_dyad, times_unit),
+                                  setdiff(times_unit, times_dyad))))
+    if (length(times_setdiff) > 0) {
+        msg = paste(times_setdiff, collapse = ', ')
+        warning(paste('The following time periods will be excluded because they do not appear in both the monadic and the dyadic data:', msg))
+    }
+    # output
+    out = list('units' = units, 'times' = times)
+    return(out)
 }
 
 prep_attributes = function(unit_time) {
@@ -76,36 +101,6 @@ prep_dyads = function(dyad_time, cores = 1) {
     return(out)
 }
 
-#' Converts a list of matrices and vertex attributes to a dependent network for
-#' btergm
-#' @param network_dependent name of the dependent network (character)
-#' @param network_environment an environment produced by the panel_to_network
-#' function.
-#' @param ... arguments will be passed to the network::network function.
-#' @note unnamed arguments (e.g., `directed`, `loops`) will be passed to the
-#' `network::network` function that is used under the hood to create network
-#' objects.
-#' @export
-dependent_network = function(network_dependent, network_environment, ...) {
-    testthat::test_that("The network_environment was produced by the `panel_to_network` function.", {
-        testthat::expect_true('network_environment' %in% class(network_environment))
-    })
-    testthat::test_that("network_dependent is a string of length 1", {
-        testthat::expect_true(class(network_dependent)[1] == 'character')
-        testthat::expect_true(length(network_dependent) == 1)
-    })
-    testthat::test_that("network_dependent is available in the network_environment.", {
-        testthat::expect_true(network_dependent %in% names(network_environment))
-    })
-    tmp = lapply(seq_along(network_environment$vertex.attributes), function(i)
-                 network::network(x = network_environment[[network_dependent]][[i]],
-                                  vertex.attr = network_environment$vertex.attributes[[i]],
-                                  vertex.attrnames = names(network_environment$vertex.attributes[[i]]), ...))
-    out = network_environment
-    out[[network_dependent]] = tmp 
-    return(out)
-}
-
 #' Converts data.frames to matrices amenable to network analysis with btergm
 #' @param dyad_time data.frame dyadic dataset with columns named `unit1`,
 #' `unit2`, `time`. Additional columns are edge attributes. 
@@ -118,17 +113,9 @@ dependent_network = function(network_dependent, network_environment, ...) {
 #' @export
 panel_to_network = function(unit_time, dyad_time, cores = 1) {
     # sanity checks
-    sanity_check(unit_time, dyad_time)
-    # common units
-    units_dyad = c(dyad_time$unit1, dyad_time$unit2)
-    units_unit = unit_time$unit
-    units = intersect(units_dyad, units_unit)
-    units = unique(units)
-    # common time
-    times_dyad = dyad_time$time
-    times_unit = unit_time$time
-    times = intersect(times_dyad, times_unit)
-    times = unique(times)
+    tmp = sanity_check(unit_time, dyad_time)
+    units = tmp$units
+    times = tmp$times
     # subset and sort
     dyad_time = dyad_time %>%
                 dplyr::filter(unit1 %in% units,
@@ -162,4 +149,34 @@ panel_to_network = function(unit_time, dyad_time, cores = 1) {
     env[['vertex.attributes']] = unit_time
     class(env) = c(class(env), 'network_environment')
     return(env)
+}
+
+#' Converts a list of matrices and vertex attributes to a dependent network for
+#' btergm
+#' @param network_dependent name of the dependent network (character)
+#' @param network_environment an environment produced by the panel_to_network
+#' function.
+#' @param ... arguments will be passed to the network::network function.
+#' @note unnamed arguments (e.g., `directed`, `loops`) will be passed to the
+#' `network::network` function that is used under the hood to create network
+#' objects.
+#' @export
+dependent_network = function(network_dependent, network_environment, ...) {
+    testthat::test_that("The network_environment was produced by the `panel_to_network` function.", {
+        testthat::expect_true('network_environment' %in% class(network_environment))
+    })
+    testthat::test_that("network_dependent is a string of length 1", {
+        testthat::expect_true(class(network_dependent)[1] == 'character')
+        testthat::expect_true(length(network_dependent) == 1)
+    })
+    testthat::test_that("network_dependent is available in the network_environment.", {
+        testthat::expect_true(network_dependent %in% names(network_environment))
+    })
+    tmp = lapply(seq_along(network_environment$vertex.attributes), function(i)
+                 network::network(x = network_environment[[network_dependent]][[i]],
+                                  vertex.attr = network_environment$vertex.attributes[[i]],
+                                  vertex.attrnames = names(network_environment$vertex.attributes[[i]]), ...))
+    out = network_environment
+    out[[network_dependent]] = tmp 
+    return(out)
 }
