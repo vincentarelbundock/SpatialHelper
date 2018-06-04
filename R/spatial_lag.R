@@ -105,8 +105,9 @@ sl_dyad_specific_panel = function(dat, unit_src, unit_tar, time, w, y, type,
                  zero_diag = zero_diag,
                  row_normalize = row_normalize
                  )
-    out = unsplit(out, idx)
+    out = do.call('rbind', out)
     out[, time] = idx
+    out = out[, c(unit_src, unit_tar, time, 'wy')]
     return(out)
 }
 
