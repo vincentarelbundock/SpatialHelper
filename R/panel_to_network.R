@@ -18,13 +18,6 @@ sanity_check_pre = function(unit_time, dyad_time) {
         (!'time' %in% colnames(dyad_time))) {
         stop("dyad_time must include columns named 'unit1', 'unit2', and 'time'.")
     }
-    if (any(is.na(unit_time$time)) |
-        any(is.na(unit_time$unit)) |
-        any(is.na(dyad_time$time)) |
-        any(is.na(dyad_time$unit1)) |
-        any(is.na(dyad_time$unit2))) {
-        stop('Time and Unit indices cannot contain missing values.')
-    }
     if ((class(unit_time$unit)[1] == 'factor') |
         (class(unit_time$time)[1] == 'factor') |
         (class(dyad_time$unit1)[1] == 'factor') |
