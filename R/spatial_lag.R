@@ -66,10 +66,10 @@ sl_dyad_specific = function(dat,
     w = rep(list(w), nrow(tmp) / nrow(w)) %>%
         Matrix::bdiag()
     if (zero_diag) {
-        diag(w) = 0
+        Matrix::diag(w) = 0
     }
     if (row_normalize) {
-        w = w / rowSums(w)
+        w = w / Matrix::rowSums(w)
     }
     tmp$wy = w %*% tmp[, y] %>% as.vector
     out = tmp[, c(unit_src, unit_tar, 'wy')]
