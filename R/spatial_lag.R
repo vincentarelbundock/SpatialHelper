@@ -25,7 +25,7 @@ sanity_check_dyad_time = function(dyad_time,
     	stop('dyad_time is not rectangular')
     }
     if (any(is.na(dyad_time))) {
-    	stpo('dyad_time contains missing values')
+    	stop('dyad_time contains missing values')
     }
 }
 
