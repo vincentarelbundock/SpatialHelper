@@ -6,7 +6,7 @@
 \usage{
 specific_source_panel(dat, unit_src = "unit1", unit_tar = "unit2",
   time = "time", w = "w", y = "y", wy = "wy",
-  row_normalize = TRUE, full = FALSE)
+  row_normalize = TRUE)
 }
 \arguments{
 \item{dat}{dyad-year dataset (data.frame)}
@@ -22,8 +22,6 @@ specific_source_panel(dat, unit_src = "unit1", unit_tar = "unit2",
 \item{wy}{name of the output variable (character)}
 
 \item{row_normalize}{should the W matrix be row-normalized? (boolean)}
-
-\item{full}{if FALSE, only returns columns unit_src, unit_tar, time, wy (boolean)}
 
 \item{unit_target}{name of target id column (character)}
 }

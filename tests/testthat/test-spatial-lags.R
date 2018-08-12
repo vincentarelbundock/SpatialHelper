@@ -7,7 +7,7 @@ test_that('specific source cross-sectional', {
 	dat$w = rnorm(nrow(dat))
 	dat$y = rnorm(nrow(dat))
 	dat = dat[sample(1:nrow(dat), nrow(dat)),] # shuffle data
-	tmp = specific_source(dat, row_normalize = FALSE, full = TRUE)
+	tmp = specific_source(dat, row_normalize = FALSE)
 	a = dplyr::filter(tmp, unit1 == 'a', unit2 == 'b')$wy
 	b = dplyr::filter(tmp, unit1 == 'a', unit2 == 'b')$w * dplyr::filter(tmp, unit1 == 'b', unit2 == 'b')$y +
 		dplyr::filter(tmp, unit1 == 'a', unit2 == 'c')$w * dplyr::filter(tmp, unit1 == 'c', unit2 == 'b')$y +
@@ -22,7 +22,7 @@ test_that('specific source panel', {
 	dat$w = rnorm(nrow(dat))
 	dat$y = rnorm(nrow(dat))
 	dat = dat[sample(1:nrow(dat), nrow(dat)),] # shuffle data
-	tmp = specific_source_panel(dat, row_normalize = FALSE, full = TRUE)
+	tmp = specific_source_panel(dat, row_normalize = FALSE)
     tmp = tmp[tmp$time == 9,]
 	a = dplyr::filter(tmp, unit1 == 'a', unit2 == 'b')$wy
 	b = dplyr::filter(tmp, unit1 == 'a', unit2 == 'b')$w * dplyr::filter(tmp, unit1 == 'b', unit2 == 'b')$y +
