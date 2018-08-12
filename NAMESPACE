@@ -2,5 +2,4 @@
 
 export(dependent_network)
 export(panel_to_network)
-export(sl_dyad_specific)
-export(sl_dyad_specific_panel)
+export(specific_source)

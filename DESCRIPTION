@@ -14,4 +14,4 @@ Imports:
     parallel (>= 3.4.0),
     Matrix (>= 1.2-14),
     tidyverse (>= 1.2.1)
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
