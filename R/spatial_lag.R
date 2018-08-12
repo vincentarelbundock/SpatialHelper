@@ -53,7 +53,9 @@ specific_source = function(dat,
     y_ik = Matrix::Matrix(dat[, y], nrow=sqrt(nrow(dat)), byrow=TRUE)
 	diag(w_ik) = 0
 	if (row_normalize) {
-		w_ik = w_ik / Matrix::rowSums(w_ik)
+        rs = Matrix::rowSums(w_ik)
+        rs[rs == 0] = 1 # edge case with no positive values across a row
+		w_ik = w_ik / rs
 	}
     result = w_ik %*% y_ik
     result = as.vector(Matrix::t(result))
