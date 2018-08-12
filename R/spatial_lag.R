@@ -58,20 +58,20 @@ sl_dyad_specific = function(dat,
     } else {
         stop('type must be "source" or "target"')
     }
-    w = tmp %>%
-        dplyr::select_(unit_src, unit_tar, w) %>%
+    W = tmp[, 1:3] %>%
         tidyr::spread(2, 3) %>%
         tibble::column_to_rownames(unit_src) %>%
-        as.matrix 
-    w = rep(list(w), nrow(tmp) / nrow(w)) %>%
+        as.matrix %>%
+        Matrix::Matrix()
+    W = rep(list(W), nrow(tmp) / nrow(W)) %>%
         Matrix::bdiag()
     if (zero_diag) {
-        Matrix::diag(w) = 0
+        Matrix::diag(W) = 0
     }
     if (row_normalize) {
-        w = w / Matrix::rowSums(w)
+        W = W / Matrix::rowSums(W)
     }
-    tmp$wy = w %*% tmp[, y] %>% as.vector
+    tmp$wy = W %*% tmp[, y] %>% as.vector
     out = tmp[, c(unit_src, unit_tar, 'wy')]
     return(out)
 }
