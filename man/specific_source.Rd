@@ -6,7 +6,7 @@
 (cross-sectional data)}
 \usage{
 specific_source(dat, unit_src = "unit1", unit_tar = "unit2", w = "w",
-  y = "y", row_normalize = TRUE)
+  y = "y", wy = "wy", row_normalize = TRUE, full = FALSE)
 }
 \arguments{
 \item{dat}{dyad-year dataset (data.frame)}
@@ -17,7 +17,11 @@ specific_source(dat, unit_src = "unit1", unit_tar = "unit2", w = "w",
 
 \item{y}{name of outcome to lag (character)}
 
+\item{wy}{name of the output variable (character)}
+
 \item{row_normalize}{should the W matrix be row-normalized? (boolean)}
+
+\item{full}{if FALSE, only returns columns unit_src, unit_tar, time, wy (boolean)}
 
 \item{unit_target}{name of target id column (character)}
 }

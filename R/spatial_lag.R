@@ -37,7 +37,9 @@ sanity_check_dyad_time = function(dyad_time,
 #' @param unit_target name of target id column (character)
 #' @param w name of distance/weights column (character)
 #' @param y name of outcome to lag (character)
+#' @param wy name of the output variable (character)
 #' @param row_normalize should the W matrix be row-normalized? (boolean)
+#' @param full if FALSE, only returns columns unit_src, unit_tar, time, wy (boolean)
 #'
 #' @export
 specific_source = function(dat,
@@ -45,7 +47,9 @@ specific_source = function(dat,
                    unit_tar = 'unit2',
                    w = 'w',
                    y = 'y',
-                   row_normalize = TRUE) {
+                   wy = 'wy',
+                   row_normalize = TRUE,
+                   full = FALSE) {
     dat = dat[order(dat[, unit_src], dat[, unit_tar]),]
 	w_ik = Matrix::Matrix(dat[, w], nrow=sqrt(nrow(dat)), byrow=TRUE)
     y_ik = Matrix::Matrix(dat[, y], nrow=sqrt(nrow(dat)), byrow=TRUE)
@@ -53,8 +57,13 @@ specific_source = function(dat,
 	if (row_normalize) {
 		w_ik = w_ik / Matrix::rowSums(w_ik)
 	}
-    wy = w_ik %*% y_ik
-    dat$wy = as.vector(Matrix::t(wy))
+    result = w_ik %*% y_ik
+    result = as.vector(Matrix::t(result))
+    dat[, wy] = result 
+    if (!full) {
+        cols = intersect(c(unit_src, unit_tar, time, wy), colnames(dat))
+        dat = dat[, cols]
+    }
     return(dat)
 }
 
@@ -66,7 +75,9 @@ specific_source = function(dat,
 #' @param time name of time column (character)
 #' @param w name of distance/weights column (character)
 #' @param y name of outcome to lag (character)
+#' @param wy name of the output variable (character)
 #' @param row_normalize should the W matrix be row-normalized? (boolean)
+#' @param full if FALSE, only returns columns unit_src, unit_tar, time, wy (boolean)
 #'
 #' @export
 specific_source_panel = function(dat,
@@ -75,7 +86,9 @@ specific_source_panel = function(dat,
                                  time = 'time',
                                  w = 'w',
                                  y = 'y',
-                                 row_normalize = TRUE) {
+                                 wy = 'wy',
+                                 row_normalize = TRUE,
+                                 full = FALSE) {
     out = dat[order(dat[, unit_src], dat[, unit_tar], dat[, time]), ]
     out = split(dat, dat[, time])
     out = lapply(out, function(x) specific_source(dat = x,
