@@ -1,6 +1,6 @@
 Package: btergmHelper
 Title: What the Package Does (one line, title case)
-Version: 0.0.1
+Version: 0.1.0.9000
 Authors@R: person("Vincent", "Arel-Bundock", email = "vincent.arel-bundock@umontreal.ca", role = c("aut", "cre"))
 Description: Converts data.frames to network objects which can be used for estimation by the btergm package
 Depends: R (>= 3.3.0)
@@ -14,4 +14,4 @@ Imports:
     parallel (>= 3.4.0),
     Matrix (>= 1.2-14),
     tidyverse (>= 1.2.1)
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1

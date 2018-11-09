@@ -1,78 +1,139 @@
-context('Dyadic spatial lags')
+library(parallel)
+library(testthat)
 
-test_that('specific source cross-sectional', {
-	unit = letters[1:4]
-	time = 1:10
-	dat = expand.grid('unit1' = unit, 'unit2' = unit, stringsAsFactors = FALSE) 
-	dat$w = rnorm(nrow(dat))
-	dat$y = rnorm(nrow(dat))
-	dat = dat[sample(1:nrow(dat), nrow(dat)),] # shuffle data
-	tmp = specific_source(dat, row_normalize = FALSE)
-	a = dplyr::filter(tmp, unit1 == 'a', unit2 == 'b')$wy
-	b = dplyr::filter(tmp, unit1 == 'a', unit2 == 'b')$w * dplyr::filter(tmp, unit1 == 'b', unit2 == 'b')$y +
-		dplyr::filter(tmp, unit1 == 'a', unit2 == 'c')$w * dplyr::filter(tmp, unit1 == 'c', unit2 == 'b')$y +
-		dplyr::filter(tmp, unit1 == 'a', unit2 == 'd')$w * dplyr::filter(tmp, unit1 == 'd', unit2 == 'b')$y 
-	testthat::expect_equal(a, b)
+# Test data
+set.seed(1024)
+unit = 1:10
+dat = expand.grid('unit1' = unit, 'unit2' = unit, stringsAsFactors = FALSE)
+dat = dat[sample(1:nrow(dat), nrow(dat)),]
+dat$w = rlnorm(nrow(dat))
+dat$y = sample(as.numeric(dat$w > 2), nrow(dat), replace = TRUE)
+
+test_that('aggregate source / row_normalize = FALSE', {
+    #y_ij = sum_k!=i sum_m w * y_km
+    k = dyadic_w(dat, type = 'aggregate_source', weights = 'ik', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
+    tmp = merge(dat, k)
+    for (a in 1:nrow(tmp)) {
+        src = tmp$unit1[a]
+        tar = tmp$unit2[a]
+        w = NULL
+        y = NULL
+        for (b in 1:nrow(tmp)) {
+            if (tmp$unit1[b] != src) {
+                y = c(y, tmp$y[b])
+                w = c(w, tmp$w[(tmp$unit1 == src) & (tmp$unit2 == tmp$unit1[b])])
+            }
+        }
+        result = sum(w * y)
+        testthat::expect_equal(result, tmp$wy[a])
+    }
 })
 
-test_that('specific source panel', {
-	unit = letters[1:4]
-	time = 1:10
-	dat = expand.grid('unit1' = unit, 'unit2' = unit, 'time' = time, stringsAsFactors = FALSE) 
-	dat$w = rnorm(nrow(dat))
-	dat$y = rnorm(nrow(dat))
-	dat = dat[sample(1:nrow(dat), nrow(dat)),] # shuffle data
-	tmp = specific_source_panel(dat, row_normalize = FALSE)
-    tmp = tmp[tmp$time == 9,]
-	a = dplyr::filter(tmp, unit1 == 'a', unit2 == 'b')$wy
-	b = dplyr::filter(tmp, unit1 == 'a', unit2 == 'b')$w * dplyr::filter(tmp, unit1 == 'b', unit2 == 'b')$y +
-		dplyr::filter(tmp, unit1 == 'a', unit2 == 'c')$w * dplyr::filter(tmp, unit1 == 'c', unit2 == 'b')$y +
-		dplyr::filter(tmp, unit1 == 'a', unit2 == 'd')$w * dplyr::filter(tmp, unit1 == 'd', unit2 == 'b')$y 
-	testthat::expect_equal(a, b)
+test_that('aggregate target / weigths = "jm" / row_normalize = FALSE', {
+    #y_ij = sum_k sum_m!=j w * y_km
+    k = dyadic_w(dat, type = 'aggregate_target', weights = 'jm', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
+    tmp = merge(dat, k)
+    for (a in 1:nrow(tmp)) {
+        src = tmp$unit1[a]
+        tar = tmp$unit2[a]
+        w = NULL
+        y = NULL
+        for (b in 1:nrow(tmp)) {
+            if (tmp$unit2[b] != tar) {
+                y = c(y, tmp$y[b])
+                w = c(w, tmp$w[(tmp$unit1 == tar) & (tmp$unit2 == tmp$unit2[b])])
+            }
+        }
+        result = sum(w * y)
+        testthat::expect_equal(result, tmp$wy[a])
+    }
 })
 
-#test_that('specific source', {
-    ##y_ij = rho * sum w_ik y_kj
-    ##k != i
-	#tmp = sl_dyad_specific_panel(dyad_time, 'unit1', 'unit2', 'time', 'w', 'y',
-								 #type = 'source', row_normalize = FALSE, zero_diag = TRUE)
-	#tmp = dyad_time %>% 
-          #dplyr::left_join(tmp, by = c('unit1', 'unit2', 'time'))
-	#tmp = tmp[tmp$time == 2, ]
-	#a = dplyr::filter(tmp, unit1 == 'a', unit2 == 'b')$wy
-	#b = dplyr::filter(tmp, unit1 == 'a', unit2 == 'b')$w * 
-        #dplyr::filter(tmp, unit1 == 'b', unit2 == 'b')$y +
-		#dplyr::filter(tmp, unit1 == 'a', unit2 == 'c')$w * 
-        #dplyr::filter(tmp, unit1 == 'c', unit2 == 'b')$y +
-		#dplyr::filter(tmp, unit1 == 'a', unit2 == 'd')$w * 
-        #dplyr::filter(tmp, unit1 == 'd', unit2 == 'b')$y 
-	#testthat::expect_equal(a, b)
-#})
+test_that('specific source / row_normalize = FALSE', {
+    #y_ij = sum_k!=i w * y_kj
+    k = dyadic_w(dat, type = 'specific_source', weights = 'ik', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
+    tmp = merge(dat, k)
+    for (a in 1:nrow(tmp)) {
+        src = tmp$unit1[a]
+        tar = tmp$unit2[a]
+        w = NULL
+        y = NULL
+        for (b in 1:nrow(tmp)) {
+            if (tmp$unit1[b] != src) {
+                if (tmp$unit2[b] == tar) {
+                    y = c(y, tmp$y[b])
+                    w = c(w, tmp$w[(tmp$unit1 == src) & (tmp$unit2 == tmp$unit1[b])])
+                }
+            }
+        }
+        result = sum(w * y)
+        testthat::expect_equal(result, tmp$wy[a])
+    }
+})
 
-#test_that('specific target', {
-    ##y_ij = rho * sum w_jk y_ik
-    ##k != j
-	#tmp = sl_dyad_specific_panel(dyad_time, 'unit1', 'unit2', 'time', 'w', 'y', 
-								 #type = 'target', row_normalize = FALSE, zero_diag = TRUE)
-	#tmp = dyad_time %>% 
-          #dplyr::left_join(tmp, by = c('unit1', 'unit2', 'time'))
-	#tmp = tmp[tmp$time == 2, ]
-	#a = dplyr::filter(tmp, unit1 == 'a', unit2 == 'b')$wy
-	#b = dplyr::filter(tmp, unit1 == 'b', unit2 == 'a')$w * 
-        #dplyr::filter(tmp, unit1 == 'a', unit2 == 'a')$y +
-		#dplyr::filter(tmp, unit1 == 'b', unit2 == 'c')$w * 
-        #dplyr::filter(tmp, unit1 == 'a', unit2 == 'c')$y +
-		#dplyr::filter(tmp, unit1 == 'b', unit2 == 'd')$w * 
-        #dplyr::filter(tmp, unit1 == 'a', unit2 == 'd')$y 
-	#testthat::expect_equal(a, b)
-#})
+test_that('specific source / row_normalize = TRUE', {
+    #y_ij = sum_k!=i w * y_kj
+    k = dyadic_w(dat, type = 'specific_source', weights = 'ik', progress = FALSE, row_normalize = TRUE, zero_loop = FALSE)
+    tmp = merge(dat, k)
+    for (a in 1:nrow(tmp)) {
+        src = tmp$unit1[a]
+        tar = tmp$unit2[a]
+        w = NULL
+        y = NULL
+        for (b in 1:nrow(tmp)) {
+            if (tmp$unit1[b] != src) {
+                if (tmp$unit2[b] == tar) {
+                    y = c(y, tmp$y[b])
+                    w = c(w, tmp$w[(tmp$unit1 == src) & (tmp$unit2 == tmp$unit1[b])])
+                }
+            }
+        }
+        w = w / sum(w)
+        result = sum(w * y)
+        testthat::expect_equal(result, tmp$wy[a])
+    }
+})
+    
+test_that('specific target / row_normalize = FALSE / weights ik', {
+    #y_ij = sum_m!=j w * y_im
+    k = dyadic_w(dat, type = 'specific_target', weights = 'ik', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
+    tmp = merge(dat, k)
+    for (a in 1:nrow(tmp)) {
+        src = tmp$unit1[a]
+        tar = tmp$unit2[a]
+        w = NULL
+        y = NULL
+        for (b in 1:nrow(tmp)) {
+            if (tmp$unit2[b] != tar) {
+                if (tmp$unit1[b] == src) {
+                    y = c(y, tmp$y[b])
+                    w = c(w, tmp$w[(tmp$unit1 == src) & (tmp$unit2 == tmp$unit1[b])])
+                }
+            }
+        }
+        result = sum(w * y)
+        testthat::expect_equal(result, tmp$wy[a])
+    }
+})
 
-
-#unit = letters[1:4]
-#time = 1:10
-#dyad_time = expand.grid('unit1' = unit, 'unit2' = unit, 'time' = time, stringsAsFactors = FALSE) 
-#dyad_time$w = rnorm(nrow(dyad_time))
-#dyad_time$y = rnorm(nrow(dyad_time))
-#dyad_time$w = 1:16
-#dyad_time$y = 
-#dyad_time = dyad_time[sample(1:nrow(dyad_time), nrow(dyad_time)),] # shuffle data
+test_that('specific target / row_normalize = FALSE / weights im', {
+    #y_ij = sum_m!=j w * y_im
+    k = dyadic_w(dat, type = 'specific_target', weights = 'im', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
+    tmp = merge(dat, k)
+    for (a in 1:nrow(tmp)) {
+        src = tmp$unit1[a]
+        tar = tmp$unit2[a]
+        w = NULL
+        y = NULL
+        for (b in 1:nrow(tmp)) {
+            if (tmp$unit2[b] != tar) {
+                if (tmp$unit1[b] == src) {
+                    y = c(y, tmp$y[b])
+                    w = c(w, tmp$w[(tmp$unit1 == src) & (tmp$unit2 == tmp$unit2[b])])
+                }
+            }
+        }
+        result = sum(w * y)
+        testthat::expect_equal(result, tmp$wy[a])
+    }
+})
