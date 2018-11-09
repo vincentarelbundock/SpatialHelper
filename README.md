@@ -1,15 +1,40 @@
+SpatialHelper: A collection of helper functions for network analysis (TERGM) and spatial econometrics in R
+
+# Installation
+
 Install from Github:
 
 ```R
 library(devtools)
-devtools::install_github('vincentarelbundock/btergmHelper')
+devtools::install_github('vincentarelbundock/SpatialHelper')
+library(SpatialHelper)
 ```
+
+# Construct spatial-lagged variables in dyadic data
+
+This follows: Neumayer, Eric, and Thomas Plümper. 2010. “Spatial Effects in Dyadic Data.” International Organization 64 (01): 145–166.
+
+```R
+# simulate dyadic data
+unit = 1:10
+dat = expand.grid('unit1' = unit, 'unit2' = unit, stringsAsFactors = FALSE)
+
+# simulate weights
+dat$w = rlnorm(nrow(dat))
+
+# simulate dependent variable
+dat$y = sample(as.numeric(dat$w > 2), nrow(dat), replace = TRUE)
+
+# compute spatial lags
+sl = dyadic_w(dat, type = 'aggregate_source', weights = 'ik')
+```
+
+# Estimate a TERGM model
 
 Load libraries:
 
 ```R
 library(btergm)
-library(btergmHelper)
 ```
 
 Simulate two test datasets:
