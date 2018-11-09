@@ -1,14 +1,14 @@
-Package: btergmHelper
-Title: What the Package Does (one line, title case)
+Package: SpatialHelper
+Title: 
 Version: 0.1.0.9000
 Authors@R: person("Vincent", "Arel-Bundock", email = "vincent.arel-bundock@umontreal.ca", role = c("aut", "cre"))
-Description: Converts data.frames to network objects which can be used for estimation by the btergm package
+Description: A collection of helper functions for network analysis (TERGM) and spatial econometrics
 Depends: R (>= 3.3.0)
-License: What license is it under?
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/vincentarelbundock/btergmHelper
-BugReports: https://github.com/vincentarelbundock/btergmHelper/issues
+URL: https://github.com/vincentarelbundock/SpatialHelper
+BugReports: https://github.com/vincentarelbundock/SpatialHelper/issues
 Imports: 
     btergm (>= 1.9.0),
     parallel (>= 3.4.0),
