@@ -2,7 +2,7 @@
 % Please edit documentation in R/spatial_lag.R
 \name{monadic_w}
 \alias{monadic_w}
-\title{Create a W matrix. With time series data, this will produce a block diagonal matrix.}
+\title{Create a W matrix. With panel data, this will produce a block diagonal matrix.}
 \usage{
 monadic_w(dat, source = "unit1", target = "unit2", w = "w",
   time = NULL, row_normalize = TRUE)
@@ -22,5 +22,5 @@ monadic_w(dat, source = "unit1", target = "unit2", w = "w",
 row-wise sum? (boolean)}
 }
 \description{
-Create a W matrix. With time series data, this will produce a block diagonal matrix.
+Create a W matrix. With panel data, this will produce a block diagonal matrix.
 }

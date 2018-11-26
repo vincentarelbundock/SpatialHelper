@@ -47,7 +47,7 @@ sanity = function(dat, source = 'source', target = 'target', w = 'w', y = NULL,
         assert_that(noNA(dat[[time]]))
     }
     # duplicate indices
-    if (!is.null(time)) {
+    if (is.null(time)) {
         variables = c(source, target)
     } else {
         variables = c(source, target, time)
@@ -123,7 +123,7 @@ monadic_w_cs = function(dat, source = 'unit1', target = 'unit2', w = 'w') {
     return(W)
 }
 
-#' Create a W matrix. With time series data, this will produce a block diagonal matrix.
+#' Create a W matrix. With panel data, this will produce a block diagonal matrix.
 #'
 #' @param dat directed dyadic dataset (data.frame)
 #' @param source name of source id column (character)
@@ -163,8 +163,8 @@ monadic_w = function(dat, source = 'unit1', target = 'unit2', w = 'w',
     return(out)
 }
 
-#' Create a new Wy column to measure specific/aggregate source/target contagion
-#' (dyadic cross-sectional data)
+#' Adds a new Wy column which measures specific/aggregate source/target contagion
+#' (directed dyadic cross-sectional or panel data)
 #'
 #' @param dat directed dyadic dataset (data.frame)
 #' @param source name of source id column (character)
@@ -172,6 +172,7 @@ monadic_w = function(dat, source = 'unit1', target = 'unit2', w = 'w',
 #' @param w name of distance/weights column (character)
 #' @param y name of outcome to lag (character)
 #' @param wy name of the output variable (character)
+#' @param time name of the time variable (optional) (character)
 #' @param type (character) aggregate source (different source); aggregate
 #' target (different target); specific source (same target different source);
 #' specific target (same source different target)
@@ -180,20 +181,43 @@ monadic_w = function(dat, source = 'unit1', target = 'unit2', w = 'w',
 #' row-wise sum? (boolean)
 #' @param zero_loop should wy be set to 0 when source == target (boolean)
 #' @param ncpus number of cpus to use for parallel computation (integer)
-#' @param progress show progress bar (boolean)
+#' @param progress show progress bar (boolean) (only works for cross-sectional
+#' data.)
 #'
 #' @export
-dyadic_wy = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w', wy = 'wy',
-                    type = 'specific_source', weights = 'ik', row_normalize = TRUE, zero_loop = TRUE,
-                    ncpus = 1, progress = TRUE) {
+dyadic_wy = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w', wy = 'wy', time = NULL,
+                     type = 'specific_source', weights = 'ik', row_normalize = TRUE, zero_loop = TRUE,
+                     ncpus = 1, progress = TRUE) {
     # sanity checks
-    sanity(dat, source = source, target = target, w = w, y = y)
+    sanity(dat, source = source, target = target, w = w, y = y, time = time)
     if (!weights %in% c('ik', 'im', 'jk', 'jm')) {
         stop('weight must be "ik", "im", "jk", or "jm"')
     }
     if (!type %in% c("aggregate_source", "aggregate_target", "specific_source", "specific_target")) {
         stop('"type" must be "aggregate_source", "aggregate_target", "specific_source", "specific_target".')
     }
+    # cross-section
+    if (is.null(time)) {
+        dat = dat[order(dat[[source]], dat[[target]]),]
+        out = dyadic_wy_cs(dat, source = source, target = target, w = w, y = y,
+                           type = type, weights = weights, row_normalize = row_normalize,
+                           zero_loop = zero_loop, ncpus = ncpus, progress = progress)
+    # panel
+    } else {
+        dat = dat[order(dat[[source]], dat[[target]], dat[[time]]),]
+        out = split(dat, dat[[time]])
+        out = lapply(out, function(x) 
+                     dyadic_wy_cs(x, source = source, target = target, w = w, y = y,
+                                  type = type, weights = weights, row_normalize = row_normalize,
+                                  zero_loop = zero_loop, ncpus = ncpus, progress = FALSE))
+        out = do.call('rbind', out)
+    }
+    return(out)
+}
+
+dyadic_wy_cs = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w', wy = 'wy',
+                        type = 'specific_source', weights = 'ik', row_normalize = TRUE, zero_loop = TRUE,
+                        ncpus = 1, progress = TRUE) {
     # weights
     W = dat[, c(source, target, w)]
     if (weights == 'ik') {
@@ -248,5 +272,7 @@ dyadic_wy = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w', 
     if (zero_loop) {
         out$wy[out[, source] == out[, target]] = 0
     }
+    # merge back into dataset
+    out = merge(dat, out)
     return(out)
 }

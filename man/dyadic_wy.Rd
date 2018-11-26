@@ -2,13 +2,13 @@
 % Please edit documentation in R/spatial_lag.R
 \name{dyadic_wy}
 \alias{dyadic_wy}
-\title{Create a new Wy column to measure specific/aggregate source/target contagion
-(dyadic cross-sectional data)}
+\title{Adds a new Wy column which measures specific/aggregate source/target contagion
+(directed dyadic cross-sectional or panel data)}
 \usage{
 dyadic_wy(dat, source = "unit1", target = "unit2", y = "y",
-  w = "w", wy = "wy", type = "specific_source", weights = "ik",
-  row_normalize = TRUE, zero_loop = TRUE, ncpus = 1,
-  progress = TRUE)
+  w = "w", wy = "wy", time = NULL, type = "specific_source",
+  weights = "ik", row_normalize = TRUE, zero_loop = TRUE,
+  ncpus = 1, progress = TRUE)
 }
 \arguments{
 \item{dat}{directed dyadic dataset (data.frame)}
@@ -23,6 +23,8 @@ dyadic_wy(dat, source = "unit1", target = "unit2", y = "y",
 
 \item{wy}{name of the output variable (character)}
 
+\item{time}{name of the time variable (optional) (character)}
+
 \item{type}{(character) aggregate source (different source); aggregate
 target (different target); specific source (same target different source);
 specific target (same source different target)}
@@ -36,9 +38,10 @@ row-wise sum? (boolean)}
 
 \item{ncpus}{number of cpus to use for parallel computation (integer)}
 
-\item{progress}{show progress bar (boolean)}
+\item{progress}{show progress bar (boolean) (only works for cross-sectional
+data.)}
 }
 \description{
-Create a new Wy column to measure specific/aggregate source/target contagion
-(dyadic cross-sectional data)
+Adds a new Wy column which measures specific/aggregate source/target contagion
+(directed dyadic cross-sectional or panel data)
 }
