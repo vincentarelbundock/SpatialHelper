@@ -1,4 +1,167 @@
+library(Matrix)
 library(parallel)
+library(assertthat)
+
+#' Internal sanity check function
+sanity = function(dat, source = 'source', target = 'target', w = 'w', y = NULL,
+                  time = NULL) {
+    # argument type
+    assert_that(is.string(source),
+                is.string(target),
+                is.string(w),
+                is.data.frame(dat))
+    if (!is.null(y)) {
+        assert_that(is.string(y))
+    }
+    if (!is.null(time)) {
+        assert_that(is.string(time))
+    }
+    # columns
+    assert_that(dat %has_name% source, 
+                dat %has_name% target, 
+                dat %has_name% w)
+    if (!is.null(y)) {
+        assert_that(dat %has_name% y)
+    }
+    if (!is.null(time)) {
+        assert_that(dat %has_name% time)
+    }
+    # data types
+    assert_that(is.numeric(dat[[source]]) | is.integer(dat[[source]] | is.character(dat[[source]])),
+                is.numeric(dat[[target]]) | is.integer(dat[[target]] | is.character(dat[[target]])),
+                is.numeric(dat[[w]]) | is.integer(dat[[w]] | is.character(dat[[w]])))
+    if (!is.null(y)) {
+        assert_that(is.numeric(dat[[y]]) | is.integer(dat[[y]]) | is.date(dat[[y]]))
+    }
+    if (!is.null(time)) {
+        assert_that(is.numeric(dat[[time]]) | is.integer(dat[[time]]) | is.date(dat[[time]]))
+    }
+    # missing values
+    assert_that(noNA(dat[[source]]),
+                noNA(dat[[target]]),
+                noNA(dat[[w]]))
+    if (!is.null(y)) {
+        assert_that(noNA(dat[[y]]))
+    }
+    if (!is.null(time)) {
+        assert_that(noNA(dat[[time]]))
+    }
+    # duplicate indices
+    if (!is.null(time)) {
+        variables = c(source, target)
+    } else {
+        variables = c(source, target, time)
+    }
+    idx = dat[, variables]
+    idx = apply(idx, 1, paste, collapse = '|')
+    if (length(idx) != length(unique(idx))) {
+        msg = paste(variables, collapse = '-')
+        msg = paste('There are duplicate', msg, 'observations in dat.')
+        stop(msg)
+    }
+    # rectangular data: assumes directed dyads. assumes self-weights exist (not NA but could be zero)
+    units = c(dat[[source]], dat[[ target]])
+    units = unique(units)
+    if (is.null(time)) {
+        n = length(unique(units))**2
+        msg = 'dat must be a "rectangular" data.frame, which includes rows for all possible combinations of source and target values. dat must be in directed dyad format. If the weights data are in undirected format, they should be converted using the `undirected_to_directed` function. Self-weights (diagonal of the W matrix) must be supplied explicitly: they cannot be NA, but could be equal to zero. Again, the `undirected_to_directed` function can help with this process. The `expand.grid` function can also be useful when preparing a dataset with all directed dyad observations.'
+    } else {
+        msg = 'dat must be a "rectangular" data.frame, which includes rows for all possible combinations of source, target, and time values. dat must be in directed dyad format. If the weights data are in undirected format, they should be converted using the `undirected_to_directed` function. Self-weights (diagonal of the W matrix) must be supplied explicitly: they cannot be NA, but could be equal to zero. Again, the `undirected_to_directed` function can help with this process. The `expand.grid` function can also be useful when preparing a dataset with all directed dyad-year observations.'
+        times = unique(dat[, time])
+        n = length(units)**2 * length(times)
+    }
+    if (n != nrow(dat)) {
+        stop(msg)
+    }
+}
+
+#' Convert an undirected dyadic dataset into a pseudo-directed one, by
+#' duplicating rows while inverting source and target identifiers.
+#' 
+#' @param dat directed dyadic dataset (data.frame)
+#' @param source name of source id column (character)
+#' @param target name of target id column (character)
+#' 
+#' @export
+undirected_to_directed = function(dat, source = 'unit1', target = 'unit2', time = NULL) {
+    # sanity
+    if (is.null(time)) {
+        idx = ifelse(dat[[source]] <= dat[[target]], 
+                     paste(dat[[source]], dat[[target]], sep = ' | '),
+                     paste(dat[[target]], dat[[source]], sep = ' | '))
+        if (anyDuplicated(idx)) {
+            stop('There are duplicate source-target/target-source obervations.')
+        }
+    } else {
+        idx = ifelse(dat[[source]] <= dat[[target]], 
+                     paste(dat[[source]], dat[[target]], dat[[time]], sep = ' | '),
+                     paste(dat[[target]], dat[[source]], dat[[time]], sep = ' | '))
+        if (anyDuplicated(idx)) {
+            stop('There are duplicate source-target-time/target-source-time obervations.')
+        }
+    }
+    # duplicate + rbind
+    a = b = dat
+    a[[source]] = ifelse(dat[[source]] <= dat[[target]], dat[[source]], dat[[target]])
+    a[[target]] = ifelse(dat[[source]] <= dat[[target]], dat[[target]], dat[[source]])
+    b[[source]] = ifelse(dat[[source]] >= dat[[target]], dat[[source]], dat[[target]])
+    b[[target]] = ifelse(dat[[source]] >= dat[[target]], dat[[target]], dat[[source]])
+    # output
+    out = rbind(a, b)
+    return(out)
+}
+
+#' Internal function to apply to a cross-section
+#' 
+monadic_w_cs = function(dat, source = 'unit1', target = 'unit2', w = 'w') {
+    tmp = dat[, c(source, target, w)]
+    W = reshape(tmp, idvar = source, timevar = target, direction = 'wide')
+    idx = W[, 1]
+    W = W[, 2:ncol(W)]
+    colnames(W) = row.names(W) = idx
+    W = as.matrix(W)
+    return(W)
+}
+
+#' Create a W matrix. With time series data, this will produce a block diagonal matrix.
+#'
+#' @param dat directed dyadic dataset (data.frame)
+#' @param source name of source id column (character)
+#' @param target name of target id column (character)
+#' @param w name of distance/weights column (character)
+#' @param time name of the (optional) time variable column (character)
+#' @param row_normalize should each value of the W matrix be divided by the
+#' row-wise sum? (boolean)
+#'
+#' @export
+monadic_w = function(dat, source = 'unit1', target = 'unit2', w = 'w', 
+                     time = NULL, row_normalize = TRUE) {
+    # sanity checks
+    sanity(dat, source = source, target = target, w = w, time = time)
+    # cross-section
+    if (is.null(time)) {
+        dat = dat[order(dat[, source], dat[, target]),]
+        out = monadic_w_cs(dat, source = source, target = target, w = w)
+    # panel
+    } else {
+        dat = dat[order(dat[, source], dat[, target], dat[, time]),]
+        out = split(dat, dat[, time])
+        out = lapply(out, function(x) 
+                     monadic_w_cs(x, source = source, target = target, w = w))
+        idx = lapply(names(out), function(x) 
+                     paste(colnames(out[[x]]), x, sep = '|'))
+        idx = unlist(idx)
+        out = Matrix::bdiag(out)
+        colnames(out) = row.names(out) = idx
+    }
+    # row normalize
+    if (row_normalize) {
+        out = out / rowSums(out)
+    }
+    # output
+    out = as.matrix(out)
+    return(out)
+}
 
 #' Create a new Wy column to measure specific/aggregate source/target contagion
 #' (dyadic cross-sectional data)
@@ -13,45 +176,23 @@ library(parallel)
 #' target (different target); specific source (same target different source);
 #' specific target (same source different target)
 #' @param weights weight specification: ik, jk, im, jm (character)
-#' @param row_normalize should the W matrix be row-normalized? (boolean)
+#' @param row_normalize should each value of the W matrix be divided by the
+#' row-wise sum? (boolean)
 #' @param zero_loop should wy be set to 0 when source == target (boolean)
 #' @param ncpus number of cpus to use for parallel computation (integer)
 #' @param progress show progress bar (boolean)
 #'
 #' @export
-dyadic_w = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w', wy = 'wy',
+dyadic_wy = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w', wy = 'wy',
                     type = 'specific_source', weights = 'ik', row_normalize = TRUE, zero_loop = TRUE,
                     ncpus = 1, progress = TRUE) {
     # sanity checks
-    if (!all(c(source, target, y, w) %in% colnames(dat))) {
-        stop('source, target, y, and w must be columns in dat')
-    }
-    tmp = paste(dat[, source], dat[, target])
-    if (anyDuplicated(tmp) != 0) {
-        stop('Duplicate source-target-time indices in dat.')
-    }
-    tmp = length(unique(dat[, source])) *
-          length(unique(dat[, target]))
-    if (tmp != nrow(dat)) {
-    	stop('dat is not rectangular')
-    }
-    if (any(is.na(dat[, source]))) {
-    	stop('There are missing values in source.')
-    }
-    if (any(is.na(dat[, target]))) {
-    	stop('There are missing values in target.')
-    }
-    if (any(is.na(dat[, y]))) {
-    	stop('There are missing values in y.')
-    }
-    if (any(is.na(dat[, w]))) {
-    	stop('There are missing values in w.')
-    }
+    sanity(dat, source = source, target = target, w = w, y = y)
     if (!weights %in% c('ik', 'im', 'jk', 'jm')) {
         stop('weight must be "ik", "im", "jk", or "jm"')
     }
     if (!type %in% c("aggregate_source", "aggregate_target", "specific_source", "specific_target")) {
-            stop('"type" must be "aggregate_source", "aggregate_target", "specific_source", "specific_target".')
+        stop('"type" must be "aggregate_source", "aggregate_target", "specific_source", "specific_target".')
     }
     # weights
     W = dat[, c(source, target, w)]

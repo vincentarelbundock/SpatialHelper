@@ -2,16 +2,15 @@ library(parallel)
 library(testthat)
 
 # Test data
-set.seed(1024)
 unit = 1:10
 dat = expand.grid('unit1' = unit, 'unit2' = unit, stringsAsFactors = FALSE)
-dat = dat[sample(1:nrow(dat), nrow(dat)),]
+dat = dat[sample(1:nrow(dat), nrow(dat)),] # shuffle
 dat$w = rlnorm(nrow(dat))
 dat$y = sample(as.numeric(dat$w > 2), nrow(dat), replace = TRUE)
 
 test_that('aggregate source / row_normalize = FALSE', {
     #y_ij = sum_k!=i sum_m w * y_km
-    k = dyadic_w(dat, type = 'aggregate_source', weights = 'ik', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
+    k = dyadic_wy(dat, type = 'aggregate_source', weights = 'ik', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
     tmp = merge(dat, k)
     for (a in 1:nrow(tmp)) {
         src = tmp$unit1[a]
@@ -31,7 +30,7 @@ test_that('aggregate source / row_normalize = FALSE', {
 
 test_that('aggregate target / weigths = "jm" / row_normalize = FALSE', {
     #y_ij = sum_k sum_m!=j w * y_km
-    k = dyadic_w(dat, type = 'aggregate_target', weights = 'jm', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
+    k = dyadic_wy(dat, type = 'aggregate_target', weights = 'jm', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
     tmp = merge(dat, k)
     for (a in 1:nrow(tmp)) {
         src = tmp$unit1[a]
@@ -51,7 +50,7 @@ test_that('aggregate target / weigths = "jm" / row_normalize = FALSE', {
 
 test_that('specific source / row_normalize = FALSE', {
     #y_ij = sum_k!=i w * y_kj
-    k = dyadic_w(dat, type = 'specific_source', weights = 'ik', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
+    k = dyadic_wy(dat, type = 'specific_source', weights = 'ik', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
     tmp = merge(dat, k)
     for (a in 1:nrow(tmp)) {
         src = tmp$unit1[a]
@@ -73,7 +72,7 @@ test_that('specific source / row_normalize = FALSE', {
 
 test_that('specific source / row_normalize = TRUE', {
     #y_ij = sum_k!=i w * y_kj
-    k = dyadic_w(dat, type = 'specific_source', weights = 'ik', progress = FALSE, row_normalize = TRUE, zero_loop = FALSE)
+    k = dyadic_wy(dat, type = 'specific_source', weights = 'ik', progress = FALSE, row_normalize = TRUE, zero_loop = FALSE)
     tmp = merge(dat, k)
     for (a in 1:nrow(tmp)) {
         src = tmp$unit1[a]
@@ -96,7 +95,7 @@ test_that('specific source / row_normalize = TRUE', {
     
 test_that('specific target / row_normalize = FALSE / weights ik', {
     #y_ij = sum_m!=j w * y_im
-    k = dyadic_w(dat, type = 'specific_target', weights = 'ik', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
+    k = dyadic_wy(dat, type = 'specific_target', weights = 'ik', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
     tmp = merge(dat, k)
     for (a in 1:nrow(tmp)) {
         src = tmp$unit1[a]
@@ -118,7 +117,7 @@ test_that('specific target / row_normalize = FALSE / weights ik', {
 
 test_that('specific target / row_normalize = FALSE / weights im', {
     #y_ij = sum_m!=j w * y_im
-    k = dyadic_w(dat, type = 'specific_target', weights = 'im', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
+    k = dyadic_wy(dat, type = 'specific_target', weights = 'im', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
     tmp = merge(dat, k)
     for (a in 1:nrow(tmp)) {
         src = tmp$unit1[a]
