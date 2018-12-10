@@ -208,13 +208,16 @@ dyadic_wy = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w', 
                            zero_loop = zero_loop, ncpus = ncpus, progress = progress)
     # panel
     } else {
+        if (progress) {
+            warning('progress argument does not work for panel data.')
+        }
         dat = dat[order(dat[[source]], dat[[target]], dat[[time]]),]
-        tmp = split(dat, dat[[time]])
-        out = list()
+        out = split(dat, dat[[time]])
         f = function(x) dyadic_wy_cs(x,
                                      source = source, target = target, w = w, y = y,
                                      type = type, weights = weights, row_normalize = row_normalize,
-                                     zero_loop = zero_loop, ncpus = 1, progress = progress)
+                                     zero_loop = zero_loop, ncpus = 1, progress = FALSE, 
+                                     return_data = return_data)
         out = mclapply(out, f, mc.cores = ncpus, mc.preschedule = FALSE)
         out = do.call('rbind', out)
     }
