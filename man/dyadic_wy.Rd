@@ -25,9 +25,13 @@ dyadic_wy(dat, source = "unit1", target = "unit2", y = "y",
 
 \item{time}{name of the time variable (optional) (character)}
 
-\item{type}{(character) aggregate source (different source); aggregate
-target (different target); specific source (same target different source);
-specific target (same source different target)}
+\item{type}{of W matrix (character) 
+\itemize{
+\item specific source: y_ij = f(sum_k!=i w * y_kj)
+\item specific target: y_ij = f(sum_m!=j w * y_im)
+\item aggregate source: y_ij = f(sum_k!=i sum_m w * y_km)
+\item aggregate target: y_ij = f(sum_k sum_m!=j w * y_km)
+}}
 
 \item{weights}{weight specification: ik, jk, im, jm (character)}
 

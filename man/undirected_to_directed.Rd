@@ -2,8 +2,7 @@
 % Please edit documentation in R/spatial_lag.R
 \name{undirected_to_directed}
 \alias{undirected_to_directed}
-\title{Convert an undirected dyadic dataset into a pseudo-directed one, by
-duplicating rows while inverting source and target identifiers.}
+\title{duplicating rows while inverting source and target identifiers.}
 \usage{
 undirected_to_directed(dat, source = "unit1", target = "unit2",
   time = NULL)
@@ -16,6 +15,5 @@ undirected_to_directed(dat, source = "unit1", target = "unit2",
 \item{target}{name of target id column (character)}
 }
 \description{
-Convert an undirected dyadic dataset into a pseudo-directed one, by
 duplicating rows while inverting source and target identifiers.
 }

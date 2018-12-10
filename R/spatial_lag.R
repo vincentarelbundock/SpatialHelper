@@ -75,7 +75,6 @@ sanity = function(dat, source = 'source', target = 'target', w = 'w', y = NULL,
     }
 }
 
-#' Convert an undirected dyadic dataset into a pseudo-directed one, by
 #' duplicating rows while inverting source and target identifiers.
 #' 
 #' @param dat directed dyadic dataset (data.frame)
@@ -100,13 +99,12 @@ undirected_to_directed = function(dat, source = 'unit1', target = 'unit2', time 
             stop('There are duplicate source-target-time/target-source-time obervations.')
         }
     }
-    # duplicate + rbind
+    # duplicate + switch index + rbind
     a = b = dat
     a[[source]] = ifelse(dat[[source]] <= dat[[target]], dat[[source]], dat[[target]])
     a[[target]] = ifelse(dat[[source]] <= dat[[target]], dat[[target]], dat[[source]])
     b[[source]] = ifelse(dat[[source]] >= dat[[target]], dat[[source]], dat[[target]])
     b[[target]] = ifelse(dat[[source]] >= dat[[target]], dat[[target]], dat[[source]])
-    # output
     out = rbind(a, b)
     return(out)
 }
@@ -173,9 +171,13 @@ monadic_w = function(dat, source = 'unit1', target = 'unit2', w = 'w',
 #' @param y name of outcome to lag (character)
 #' @param wy name of the output variable (character)
 #' @param time name of the time variable (optional) (character)
-#' @param type (character) aggregate source (different source); aggregate
-#' target (different target); specific source (same target different source);
-#' specific target (same source different target)
+#' @param type of W matrix (character) 
+#' \itemize{
+#' \item specific source: y_ij = f(sum_k!=i w * y_kj)
+#' \item specific target: y_ij = f(sum_m!=j w * y_im)
+#' \item aggregate source: y_ij = f(sum_k!=i sum_m w * y_km)
+#' \item aggregate target: y_ij = f(sum_k sum_m!=j w * y_km)
+#' }
 #' @param weights weight specification: ik, jk, im, jm (character)
 #' @param row_normalize should each value of the W matrix be divided by the
 #' row-wise sum? (boolean)
