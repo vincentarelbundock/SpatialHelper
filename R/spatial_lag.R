@@ -207,11 +207,17 @@ dyadic_wy = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w', 
     # panel
     } else {
         dat = dat[order(dat[[source]], dat[[target]], dat[[time]]),]
-        out = split(dat, dat[[time]])
-        out = lapply(out, function(x) 
-                     dyadic_wy_cs(x, source = source, target = target, w = w, y = y,
-                                  type = type, weights = weights, row_normalize = row_normalize,
-                                  zero_loop = zero_loop, ncpus = ncpus, progress = FALSE))
+        tmp = split(dat, dat[[time]])
+        out = list()
+        for (i in seq_along(tmp)) {
+            if (progress) {
+                cat('Time period: ', i, '\n')
+            }
+            out[[i]] = dyadic_wy_cs(tmp[[i]], 
+                                    source = source, target = target, w = w, y = y,
+                                    type = type, weights = weights, row_normalize = row_normalize,
+                                    zero_loop = zero_loop, ncpus = ncpus, progress = progress)
+        }
         out = do.call('rbind', out)
     }
     return(out)
