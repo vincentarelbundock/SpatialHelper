@@ -8,7 +8,7 @@
 dyadic_wy(dat, source = "unit1", target = "unit2", y = "y",
   w = "w", wy = "wy", time = NULL, type = "specific_source",
   weights = "ik", row_normalize = TRUE, zero_loop = TRUE,
-  ncpus = 1, progress = TRUE)
+  ncpus = 1, progress = TRUE, return_data = FALSE)
 }
 \arguments{
 \item{dat}{directed dyadic dataset (data.frame)}
@@ -44,6 +44,9 @@ row-wise sum? (boolean)}
 
 \item{progress}{show progress bar (boolean) (only works for cross-sectional
 data.)}
+
+\item{return_data}{function returns the full dataset (TRUE) or just the
+spatial lag (FALSE)}
 }
 \description{
 Adds a new Wy column which measures specific/aggregate source/target contagion

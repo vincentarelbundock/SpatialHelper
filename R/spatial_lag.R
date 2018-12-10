@@ -185,11 +185,13 @@ monadic_w = function(dat, source = 'unit1', target = 'unit2', w = 'w',
 #' @param ncpus number of cpus to use for parallel computation (integer)
 #' @param progress show progress bar (boolean) (only works for cross-sectional
 #' data.)
+#' @param return_data function returns the full dataset (TRUE) or just the
+#' spatial lag (FALSE)
 #'
 #' @export
 dyadic_wy = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w', wy = 'wy', time = NULL,
                      type = 'specific_source', weights = 'ik', row_normalize = TRUE, zero_loop = TRUE,
-                     ncpus = 1, progress = TRUE) {
+                     ncpus = 1, progress = TRUE, return_data = FALSE) {
     # sanity checks
     sanity(dat, source = source, target = target, w = w, y = y, time = time)
     if (!weights %in% c('ik', 'im', 'jk', 'jm')) {
@@ -209,15 +211,11 @@ dyadic_wy = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w', 
         dat = dat[order(dat[[source]], dat[[target]], dat[[time]]),]
         tmp = split(dat, dat[[time]])
         out = list()
-        for (i in seq_along(tmp)) {
-            if (progress) {
-                cat('Time period: ', i, '\n')
-            }
-            out[[i]] = dyadic_wy_cs(tmp[[i]], 
-                                    source = source, target = target, w = w, y = y,
-                                    type = type, weights = weights, row_normalize = row_normalize,
-                                    zero_loop = zero_loop, ncpus = ncpus, progress = progress)
-        }
+        f = function(x) dyadic_wy_cs(x,
+                                     source = source, target = target, w = w, y = y,
+                                     type = type, weights = weights, row_normalize = row_normalize,
+                                     zero_loop = zero_loop, ncpus = 1, progress = progress)
+        out = mclapply(out, f, mc.cores = ncpus, mc.preschedule = FALSE)
         out = do.call('rbind', out)
     }
     return(out)
@@ -225,7 +223,7 @@ dyadic_wy = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w', 
 
 dyadic_wy_cs = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w', wy = 'wy',
                         type = 'specific_source', weights = 'ik', row_normalize = TRUE, zero_loop = TRUE,
-                        ncpus = 1, progress = TRUE) {
+                        ncpus = 1, progress = TRUE, return_data = FALSE) {
     # weights
     W = dat[, c(source, target, w)]
     if (weights == 'ik') {
@@ -281,6 +279,8 @@ dyadic_wy_cs = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w
         out$wy[out[, source] == out[, target]] = 0
     }
     # merge back into dataset
-    out = merge(dat, out)
+    if (return_data) {
+        out = merge(dat, out)
+    }
     return(out)
 }
