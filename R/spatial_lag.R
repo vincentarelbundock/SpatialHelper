@@ -242,46 +242,40 @@ dyadic_wy_cs = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w
     # edges
     Y = dat[, c(source, target, y)]
     colnames(Y) = c('k', 'm', 'y')
-    # loops
-    out = list()
-    j_loop = function(j) {
+    # main loop
+    out = expand.grid('i' = unique(dat[[source]]),
+                      'j' = unique(dat[[target]]),
+                      'wy' = NA,
+                      stringsAsFactors = FALSE)
+    if (progress) pb = txtProgressBar(min = 0, max = nrow(out), style = 3)
+    for (idx in 1:nrow(out)) {
+        i = out$i[idx]
+        j = out$j[idx]
         Z = Y
         Z$i = i
         Z$j = j
-        # specific source: y_ij = sum_k!=i w * y_kj
-        # specific target: y_ij = sum_m!=j w * y_im
         # aggregate source: y_ij = sum_k!=i sum_m w * y_km
-        # aggregate target: y_ij = sum_k sum_m!=j w * y_km
         if (type == 'aggregate_source') {
-            Z = Z[Z$k != i,] # different source
+            Z = Z[Z$k != i,] 
+        # aggregate target: y_ij = sum_k sum_m!=j w * y_km
         } else if (type == 'aggregate_target') {
-            Z = Z[Z$m != j,] # different target
+            Z = Z[Z$m != j,] 
+        # specific source: y_ij = sum_k!=i w * y_kj
         } else if (type == 'specific_source') {
-            Z = Z[(Z$k != i) & (Z$m == j),] # same target different source
+            Z = Z[(Z$k != i) & (Z$m == j),]
+        # specific target: y_ij = sum_m!=j w * y_im
         } else if (type == 'specific_target') {
-            Z = Z[(Z$k == i) & (Z$m != j),] # same source different target
+            Z = Z[(Z$k == i) & (Z$m != j),] 
         } 
         # wy 
         Z = merge(Z, W)
         if (row_normalize) {
             Z$w = Z$w / sum(Z$w)
         }
-        Z = data.frame('i' = i, 'j' = j, 'wy' = sum(Z$w * Z$y))
-        return(Z)
-    }
-    is = unique(dat[, source])
-    if (progress) pb = txtProgressBar(min = 0, max = length(is), style = 3)
-    for (idx in seq_along(is)) {
-        i = is[idx]
+        out$wy[idx] = sum(Z$w * Z$y)
         if (progress) setTxtProgressBar(pb, idx)
-        tmp = mclapply(unique(dat[, target]), j_loop, mc.cores = ncpus)
-        out = c(out, tmp)
     }
-    out = do.call('rbind', out)
     colnames(out) = c(source, target, wy)
-    if (zero_loop) {
-        out[[wy]][out[[source]] == out[[target]]] = 0
-    }
     # merge back into dataset
     if (return_data) {
         out = merge(dat, out)
