@@ -13,5 +13,6 @@ Imports:
     btergm (>= 1.9.0),
     parallel (>= 3.4.0),
     Matrix (>= 1.2-14),
+    assertthat (>= 0.2.0),
     tidyverse (>= 1.2.1)
 RoxygenNote: 6.1.1
