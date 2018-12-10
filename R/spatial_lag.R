@@ -27,9 +27,9 @@ sanity = function(dat, source = 'source', target = 'target', w = 'w', y = NULL,
         assert_that(dat %has_name% time)
     }
     # data types
-    assert_that(is.numeric(dat[[source]]) | is.integer(dat[[source]] | is.character(dat[[source]])),
-                is.numeric(dat[[target]]) | is.integer(dat[[target]] | is.character(dat[[target]])),
-                is.numeric(dat[[w]]) | is.integer(dat[[w]] | is.character(dat[[w]])))
+    assert_that(is.numeric(dat[[source]]) | is.integer(dat[[source]]) | is.character(dat[[source]]),
+                is.numeric(dat[[target]]) | is.integer(dat[[target]]) | is.character(dat[[target]]),
+                is.numeric(dat[[w]]) | is.integer(dat[[w]]) | is.character(dat[[w]]))
     if (!is.null(y)) {
         assert_that(is.numeric(dat[[y]]) | is.integer(dat[[y]]) | is.date(dat[[y]]))
     }
