@@ -1,3 +1,4 @@
+#TODO: does not rename with the wy argument. calls everything "wy"
 library(Matrix)
 library(parallel)
 library(assertthat)
@@ -279,7 +280,7 @@ dyadic_wy_cs = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w
     out = do.call('rbind', out)
     colnames(out) = c(source, target, wy)
     if (zero_loop) {
-        out$wy[out[, source] == out[, target]] = 0
+        out[[wy]][out[[source]] == out[[target]]] = 0
     }
     # merge back into dataset
     if (return_data) {
