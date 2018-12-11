@@ -227,6 +227,9 @@ dyadic_wy_cs = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w
                         ncpus = 1, progress = TRUE) {
     # weights
     W = dat[, c(source, target, w)]
+    if (zero_loop) {
+        W = W[W[[source]] != W[[target]],]
+    }
     if (weights == 'ik') {
         colnames(W) = c('i', 'k', 'w')
     } else if (weights == 'im') {
