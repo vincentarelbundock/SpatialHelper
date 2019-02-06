@@ -1,16 +1,19 @@
 #TODO: does not rename with the wy argument. calls everything "wy"
-library(Matrix)
-library(parallel)
-library(assertthat)
 
 #' Internal sanity check function
+#'
+#' @importFrom assertthat assert_that
+#' @importFrom assertthat noNA
+#' @importFrom assertthat is.string
+#' @importFrom assertthat is.date
+#' @importFrom assertthat %has_name%
 sanity = function(dat, source = 'source', target = 'target', w = 'w', y = NULL,
                   time = NULL) {
     # argument type
     assert_that(is.string(source),
-                is.string(target),
-                is.string(w),
-                is.data.frame(dat))
+                            is.string(target),
+                            is.string(w),
+                            is.data.frame(dat))
     if (!is.null(y)) {
         assert_that(is.string(y))
     }
@@ -19,8 +22,8 @@ sanity = function(dat, source = 'source', target = 'target', w = 'w', y = NULL,
     }
     # columns
     assert_that(dat %has_name% source, 
-                dat %has_name% target, 
-                dat %has_name% w)
+                            dat %has_name% target, 
+                            dat %has_name% w)
     if (!is.null(y)) {
         assert_that(dat %has_name% y)
     }
@@ -28,9 +31,11 @@ sanity = function(dat, source = 'source', target = 'target', w = 'w', y = NULL,
         assert_that(dat %has_name% time)
     }
     # data types
-    assert_that(is.numeric(dat[[source]]) | is.integer(dat[[source]]) | is.character(dat[[source]]),
-                is.numeric(dat[[target]]) | is.integer(dat[[target]]) | is.character(dat[[target]]),
-                is.numeric(dat[[w]]) | is.integer(dat[[w]]) | is.character(dat[[w]]))
+    assert_that(
+        is.numeric(dat[[source]]) | is.integer(dat[[source]]) | is.character(dat[[source]]),
+        is.numeric(dat[[target]]) | is.integer(dat[[target]]) | is.character(dat[[target]]),
+        is.numeric(dat[[w]]) | is.integer(dat[[w]]) | is.character(dat[[w]])
+    )
     if (!is.null(y)) {
         assert_that(is.numeric(dat[[y]]) | is.integer(dat[[y]]) | is.date(dat[[y]]))
     }
@@ -38,9 +43,10 @@ sanity = function(dat, source = 'source', target = 'target', w = 'w', y = NULL,
         assert_that(is.numeric(dat[[time]]) | is.integer(dat[[time]]) | is.date(dat[[time]]))
     }
     # missing values
-    assert_that(noNA(dat[[source]]),
-                noNA(dat[[target]]),
-                noNA(dat[[w]]))
+    assert_that(
+        noNA(dat[[source]]),
+        noNA(dat[[target]]),
+        noNA(dat[[w]]))
     if (!is.null(y)) {
         assert_that(noNA(dat[[y]]))
     }
@@ -132,6 +138,7 @@ monadic_w_cs = function(dat, source = 'unit1', target = 'unit2', w = 'w') {
 #' @param row_normalize should each value of the W matrix be divided by the
 #' row-wise sum? (boolean)
 #'
+#' @importFrom Matrix bdiag
 #' @export
 monadic_w = function(dat, source = 'unit1', target = 'unit2', w = 'w', 
                      time = NULL, row_normalize = TRUE) {
@@ -150,7 +157,7 @@ monadic_w = function(dat, source = 'unit1', target = 'unit2', w = 'w',
         idx = lapply(names(out), function(x) 
                      paste(colnames(out[[x]]), x, sep = '|'))
         idx = unlist(idx)
-        out = Matrix::bdiag(out)
+        out = bdiag(out)
         colnames(out) = row.names(out) = idx
     }
     # row normalize
@@ -187,6 +194,7 @@ monadic_w = function(dat, source = 'unit1', target = 'unit2', w = 'w',
 #' @param progress show progress bar (boolean) (only works for cross-sectional
 #' data.)
 #'
+#' @importFrom parallel mclapply
 #' @export
 dyadic_wy = function(dat, source = 'unit1', target = 'unit2', y = 'y', w = 'w', wy = 'wy', time = NULL,
                      type = 'specific_source', weights = 'ik', row_normalize = TRUE, zero_loop = TRUE,
