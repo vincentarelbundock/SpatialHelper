@@ -4,7 +4,16 @@
 \alias{monadic_w_cs}
 \title{Internal function to apply to a cross-section}
 \usage{
-monadic_w_cs(dat, source = "unit1", target = "unit2", w = "w")
+monadic_w_cs(dat, origin = "unit1", destination = "unit2", w = "w")
+}
+\arguments{
+\item{dat}{directed dyadic dataset (data.frame)}
+
+\item{origin}{name of origin id column (character)}
+
+\item{destination}{name of destination id column (character)}
+
+\item{w}{name of distance/weights column (character)}
 }
 \description{
 Internal function to apply to a cross-section

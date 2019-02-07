@@ -2,20 +2,20 @@
 % Please edit documentation in R/spatial_lag.R
 \name{dyadic_wy}
 \alias{dyadic_wy}
-\title{Adds a new Wy column which measures specific/aggregate source/target contagion
+\title{Adds a new Wy column which measures specific/aggregate origin/destination contagion
 (directed dyadic cross-sectional or panel data)}
 \usage{
-dyadic_wy(dat, source = "unit1", target = "unit2", y = "y",
-  w = "w", wy = "wy", time = NULL, type = "specific_source",
+dyadic_wy(dat, origin = "unit1", destination = "unit2", y = "y",
+  w = "w", wy = "wy", time = NULL, type = "specific_origin",
   weights = "ik", row_normalize = TRUE, zero_loop = TRUE,
-  ncpus = 1, progress = TRUE)
+  progress = FALSE)
 }
 \arguments{
 \item{dat}{directed dyadic dataset (data.frame)}
 
-\item{source}{name of source id column (character)}
+\item{origin}{name of origin id column (character)}
 
-\item{target}{name of target id column (character)}
+\item{destination}{name of destination id column (character)}
 
 \item{y}{name of outcome to lag (character)}
 
@@ -27,10 +27,10 @@ dyadic_wy(dat, source = "unit1", target = "unit2", y = "y",
 
 \item{type}{of W matrix (character) 
 \itemize{
-\item specific source: y_ij = f(sum_k!=i w * y_kj)
-\item specific target: y_ij = f(sum_m!=j w * y_im)
-\item aggregate source: y_ij = f(sum_k!=i sum_m w * y_km)
-\item aggregate target: y_ij = f(sum_k sum_m!=j w * y_km)
+  \item specific origin: y_ij = f(sum_k!=i w * y_kj)
+  \item specific destination: y_ij = f(sum_m!=j w * y_im)
+  \item aggregate origin: y_ij = f(sum_k!=i sum_m w * y_km)
+  \item aggregate destination: y_ij = f(sum_k sum_m!=j w * y_km)
 }}
 
 \item{weights}{weight specification: ik, jk, im, jm (character)}
@@ -38,14 +38,12 @@ dyadic_wy(dat, source = "unit1", target = "unit2", y = "y",
 \item{row_normalize}{should each value of the W matrix be divided by the
 row-wise sum? (boolean)}
 
-\item{zero_loop}{should wy be set to 0 when source == target (boolean)}
+\item{zero_loop}{should wy be set to 0 when origin == destination (boolean)}
 
-\item{ncpus}{number of cpus to use for parallel computation (integer)}
-
-\item{progress}{show progress bar (boolean) (only works for cross-sectional
-data.)}
+\item{progress}{boolean show progress bar (boolean). Only works with
+`plan(multiprocess)` and panel data (`time != NULL`).}
 }
 \description{
-Adds a new Wy column which measures specific/aggregate source/target contagion
+Adds a new Wy column which measures specific/aggregate origin/destination contagion
 (directed dyadic cross-sectional or panel data)
 }

@@ -20,7 +20,3 @@ panel_to_network(unit_time, dyad_time, cores = 1, verbose = TRUE)
 \description{
 Converts data.frames to objects amenable to network analysis using `btergm`
 }
-\examples{
-# Examples are in the README file at
-http://github.com/vincentarelbundock/btergmHelper
-}

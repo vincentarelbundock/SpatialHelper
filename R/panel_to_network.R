@@ -118,7 +118,7 @@ prep_dyad_crosssection = function(dyad_crosssection) {
 
 prep_variable = function(dyad_crosssection, v) {
     out = dyad_crosssection[, c('unit1', 'unit2', v)]
-    out = reshape(out, timevar = "unit2", idvar = "unit1", direction = 'wide')
+    out = stats::reshape(out, timevar = "unit2", idvar = "unit1", direction = 'wide')
     row.names(out) = out[, 1]
     out = out[, -1]
     colnames(out) = gsub(paste0(v, '\\.'), '', colnames(out))
@@ -134,8 +134,10 @@ prep_variable = function(dyad_crosssection, v) {
 #' @param cores integer number of cores to use for computation with mclapply
 #' @param verbose print progress report if TRUE
 #' @examples
-#' # Examples are in the README file at
-#' http://github.com/vincentarelbundock/btergmHelper
+#' \dontrun{
+#'   # Examples are in the README file at
+#'   http://github.com/vincentarelbundock/SpatialHelper
+#; }
 #' @export
 panel_to_network = function(unit_time, dyad_time, cores = 1, verbose = TRUE) {
     # sanity checks pre

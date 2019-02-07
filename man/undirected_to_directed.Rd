@@ -2,18 +2,20 @@
 % Please edit documentation in R/spatial_lag.R
 \name{undirected_to_directed}
 \alias{undirected_to_directed}
-\title{duplicating rows while inverting source and target identifiers.}
+\title{duplicating rows while inverting origin and destination identifiers.}
 \usage{
-undirected_to_directed(dat, source = "unit1", target = "unit2",
+undirected_to_directed(dat, origin = "unit1", destination = "unit2",
   time = NULL)
 }
 \arguments{
 \item{dat}{directed dyadic dataset (data.frame)}
 
-\item{source}{name of source id column (character)}
+\item{origin}{name of origin id column (character)}
 
-\item{target}{name of target id column (character)}
+\item{destination}{name of destination id column (character)}
+
+\item{time}{name of the time variable (optional) (character)}
 }
 \description{
-duplicating rows while inverting source and target identifiers.
+duplicating rows while inverting origin and destination identifiers.
 }

@@ -4,4 +4,4 @@
 library(testthat)
 
 ## Runs the tests in tests/testthat
-test_check('btergmHelper')
+test_check('SpatialHelper')

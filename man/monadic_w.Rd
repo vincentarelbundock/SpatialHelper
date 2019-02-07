@@ -4,15 +4,15 @@
 \alias{monadic_w}
 \title{Create a W matrix. With panel data, this will produce a block diagonal matrix.}
 \usage{
-monadic_w(dat, source = "unit1", target = "unit2", w = "w",
+monadic_w(dat, origin = "unit1", destination = "unit2", w = "w",
   time = NULL, row_normalize = TRUE)
 }
 \arguments{
 \item{dat}{directed dyadic dataset (data.frame)}
 
-\item{source}{name of source id column (character)}
+\item{origin}{name of origin id column (character)}
 
-\item{target}{name of target id column (character)}
+\item{destination}{name of destination id column (character)}
 
 \item{w}{name of distance/weights column (character)}
 

@@ -17,7 +17,7 @@ This follows: Neumayer, Eric, and Thomas Plümper. 2010. “Spatial Effects in D
 ```R
 # simulate dyadic data
 unit = 1:10
-dat = expand.grid('unit1' = unit, 'unit2' = unit, stringsAsFactors = FALSE)
+dat = expand.grid('unit1' = unit, 'unit2' = unit, 'time' = 1980:1990, stringsAsFactors = FALSE)
 
 # simulate weights
 dat$w = rlnorm(nrow(dat))
@@ -26,7 +26,21 @@ dat$w = rlnorm(nrow(dat))
 dat$y = sample(as.numeric(dat$w > 2), nrow(dat), replace = TRUE)
 
 # compute spatial lags
-sl = dyadic_w(dat, type = 'aggregate_source', weights = 'ik')
+sl = dyadic_wy(dat, 
+               origin = 'unit1',
+               destination = 'unit2',
+               time = 'year',
+               y = 'y',
+               w = 'w',
+               weights = 'ik',
+               type = 'aggregate_origin')
+```
+
+`SpatialHelper` can use the `furrr` package to run the command in parallel on multiple cores. To use 4 cores, just call the following code before executing `dyadic_wy`:
+
+```r
+library(furrr)
+plan(multiprocess, workers = 4)
 ```
 
 # Estimate a TERGM model
