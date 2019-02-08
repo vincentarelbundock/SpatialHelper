@@ -101,11 +101,7 @@ prep_attributes = function(unit_time) {
 
 prep_dyads = function(dyad_time, cores = 1) {
     out = split(dyad_time, dyad_time$time) 
-    if (cores > 1) {
-        out = parallel::mclapply(out, prep_dyad_crosssection, mc.cores = cores)
-    } else {
-        out = lapply(out, prep_dyad_crosssection)
-    }
+    out = furrr::future_map(out, prep_dyad_crosssection)
     return(out)
 }
 
