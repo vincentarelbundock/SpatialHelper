@@ -17,7 +17,7 @@ This follows: Neumayer, Eric, and Thomas Plümper. 2010. “Spatial Effects in D
 ```R
 # simulate dyadic data
 unit = 1:10
-dat = expand.grid('unit1' = unit, 'unit2' = unit, 'time' = 1980:1990, stringsAsFactors = FALSE)
+dat = expand.grid('unit1' = unit, 'unit2' = unit, 'year' = 1980:1990, stringsAsFactors = FALSE)
 
 # simulate weights
 dat$w = rlnorm(nrow(dat))
