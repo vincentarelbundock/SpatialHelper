@@ -85,7 +85,7 @@ sanity = function(dat,
         msg = 'dat must be a "rectangular" data.frame, which includes rows for all possible combinations of origin and destination values. dat must be in directed dyad format. If the weights data are in undirected format, they should be converted using the `undirected_to_directed` function. Self-weights (diagonal of the W matrix) must be supplied explicitly: they cannot be NA, but could be equal to zero. Again, the `undirected_to_directed` function can help with this process. The `expand.grid` function can also be useful when preparing a dataset with all directed dyad observations.'
     } else {
         msg = 'dat must be a "rectangular" data.frame, which includes rows for all possible combinations of origin, destination, and time values. dat must be in directed dyad format. If the weights data are in undirected format, they should be converted using the `undirected_to_directed` function. Self-weights (diagonal of the W matrix) must be supplied explicitly: they cannot be NA, but could be equal to zero. Again, the `undirected_to_directed` function can help with this process. The `expand.grid` function can also be useful when preparing a dataset with all directed dyad-year observations.'
-        times = unique(dat[, time])
+        times = unique(dat[[time]])
         n = length(units)**2 * length(times)
     }
     if (n != nrow(dat)) {
@@ -135,7 +135,7 @@ undirected_to_directed = function(dat, origin = 'unit1', destination = 'unit2', 
 monadic_w_cs = function(dat, origin = 'unit1', destination = 'unit2', w = 'w') {
     tmp = dat[, c(origin, destination, w)]
     W = stats::reshape(tmp, idvar = origin, timevar = destination, direction = 'wide')
-    idx = W[, 1]
+    idx = W[[1]]
     W = W[, 2:ncol(W)]
     colnames(W) = row.names(W) = idx
     W = as.matrix(W)
@@ -160,12 +160,12 @@ monadic_w = function(dat, origin = 'unit1', destination = 'unit2', w = 'w',
     sanity(dat, origin = origin, destination = destination, w = w, time = time)
     # cross-section
     if (is.null(time)) {
-        dat = dat[order(dat[, origin], dat[, destination]),]
+        dat = dat[order(dat[[origin]], dat[[destination]]),]
         out = monadic_w_cs(dat, origin = origin, destination = destination, w = w)
     # panel
     } else {
-        dat = dat[order(dat[, origin], dat[, destination], dat[, time]),]
-        out = split(dat, dat[, time])
+        dat = dat[order(dat[[origin]], dat[[destination]], dat[[time]]),]
+        out = split(dat, dat[[time]])
         out = lapply(out, function(x) 
                      monadic_w_cs(x, origin = origin, destination = destination, w = w))
         idx = lapply(names(out), function(x) 
