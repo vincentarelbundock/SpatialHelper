@@ -29,6 +29,15 @@ sanity = function(dat,
     if (!is.null(type)) {
         checkmate::assert_true(type %in% c("aggregate_origin", "aggregate_destination", 
                                            "specific_origin", "specific_destination"))
+
+        # Neumayer rules from Stata documentation
+        if (type %in% c('specific_origin', 'specific_destination')) {
+            checkmate::assert_true(weights %in% c("ik", "ki", "im", "mi", "jm", "mj", "jk", "kj"))
+        } else if (type == 'aggregate_origin') {
+            checkmate::assert_true(weights %in% c("ik", "ki", "im", "mi"))
+        } else if (type == 'aggregate_destination') {
+            checkmate::assert_true(weights %in% c("jm", "mj", "jk", "kj"))
+        }
     }
 
     # variables present in data.frame
