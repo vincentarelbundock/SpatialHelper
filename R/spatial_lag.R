@@ -22,21 +22,25 @@ sanity = function(dat,
     checkmate::assert_string(type, null.ok = TRUE)
     checkmate::assert_data_frame(dat, null.ok = TRUE)
 
-    if (!is.null(weights)) {
-        checkmate::assert_true(weights %in% c('ik', 'im', 'jk', 'jm'))
-    }
-
     if (!is.null(type)) {
         checkmate::assert_true(type %in% c("aggregate_origin", "aggregate_destination", 
                                            "specific_origin", "specific_destination"))
-
-        # Neumayer rules from Stata documentation
-        if (type %in% c('specific_origin', 'specific_destination')) {
-            checkmate::assert_true(weights %in% c("ik", "ki", "im", "mi", "jm", "mj", "jk", "kj"))
-        } else if (type == 'aggregate_origin') {
-            checkmate::assert_true(weights %in% c("ik", "ki", "im", "mi"))
-        } else if (type == 'aggregate_destination') {
-            checkmate::assert_true(weights %in% c("jm", "mj", "jk", "kj"))
+        if (!is.null(weights)) {
+            # Neumayer rules from Stata documentation
+            # TODO: Write more tests if you want access to the others
+            if (type == 'specific_origin') {
+                checkmate::assert_true(weights %in% c("ik", "ki")) 
+                # c("ik", "ki", "im", "mi", "jm", "mj", "jk", "kj"))
+            } else if (type == 'specific_destination') {
+                checkmate::assert_true(weights %in% c("jm", "mj")) 
+                # c("ik", "ki", "im", "mi", "jm", "mj", "jk", "kj")
+            } else if (type == 'aggregate_origin') {
+                checkmate::assert_true(weights %in% c("ik", "ki")) 
+                # c("ik", "ki", "im", "mi"))
+            } else if (type == 'aggregate_destination') {
+                checkmate::assert_true(weights %in% c("jm", "mj")) 
+                # c("jm", "mj", "jk", "kj"))
+            }
         }
     }
 
@@ -51,10 +55,6 @@ sanity = function(dat,
     checkmate::assert(
         checkmate::check_numeric(dat[[origin]], any.missing = FALSE),
         checkmate::check_character(dat[[origin]], any.missing = FALSE),
-        null.ok = TRUE
-    )
-
-    checkmate::assert(
         checkmate::check_numeric(dat[[destination]], any.missing = FALSE),
         checkmate::check_character(dat[[destination]], any.missing = FALSE),
         null.ok = TRUE
@@ -68,6 +68,9 @@ sanity = function(dat,
             null.ok = TRUE
         )
     }
+
+    # weights are non-negative
+    checkmate::assert_numeric(dat[[w]], lower = 0, upper = Inf, any.missing = FALSE)
 
     # duplicate indices
     if (!is.null(origin) &
@@ -278,15 +281,7 @@ dyadic_wy_cs = function(dat,
     if (zero_loop) {
         W = W[W[[origin]] != W[[destination]],]
     }
-    if (weights == 'ik') {
-        colnames(W) = c('i', 'k', 'w')
-    } else if (weights == 'im') {
-        colnames(W) = c('i', 'm', 'w')
-    } else if (weights == 'jk') {
-        colnames(W) = c('i', 'k', 'w')
-    } else if (weights == 'jm') {
-        colnames(W) = c('j', 'm', 'w')
-    }
+    colnames(W) <- c(strsplit(weights, '')[[1]], 'w')
     # edges
     Y = dat[, c(origin, destination, y)]
     colnames(Y) = c('k', 'm', 'y')

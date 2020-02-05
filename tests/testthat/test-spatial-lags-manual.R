@@ -90,46 +90,46 @@ test_that('specific origin / row_normalize = TRUE', {
     }
 })
     
-test_that('specific destination / row_normalize = FALSE / weights ik', {
-    #y_ij = sum_m!=j w * y_im
-    k = dyadic_wy(dat, type = 'specific_destination', weights = 'ik', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
-    tmp = merge(dat, k)
-    for (a in 1:nrow(tmp)) {
-        src = tmp$unit1[a]
-        tar = tmp$unit2[a]
-        w = NULL
-        y = NULL
-        for (b in 1:nrow(tmp)) {
-            if (tmp$unit2[b] != tar) {
-                if (tmp$unit1[b] == src) {
-                    y = c(y, tmp$y[b])
-                    w = c(w, tmp$w[(tmp$unit1 == src) & (tmp$unit2 == tmp$unit1[b])])
-                }
-            }
-        }
-        result = sum(w * y)
-        testthat::expect_equal(result, tmp$wy[a])
-    }
-})
+#test_that('specific destination / row_normalize = FALSE / weights ik', {
+    ##y_ij = sum_m!=j w * y_im
+    #k = dyadic_wy(dat, type = 'specific_destination', weights = 'ik', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
+    #tmp = merge(dat, k)
+    #for (a in 1:nrow(tmp)) {
+        #src = tmp$unit1[a]
+        #tar = tmp$unit2[a]
+        #w = NULL
+        #y = NULL
+        #for (b in 1:nrow(tmp)) {
+            #if (tmp$unit2[b] != tar) {
+                #if (tmp$unit1[b] == src) {
+                    #y = c(y, tmp$y[b])
+                    #w = c(w, tmp$w[(tmp$unit1 == src) & (tmp$unit2 == tmp$unit1[b])])
+                #}
+            #}
+        #}
+        #result = sum(w * y)
+        #testthat::expect_equal(result, tmp$wy[a])
+    #}
+#})
 
-test_that('specific destination / row_normalize = FALSE / weights im', {
-    #y_ij = sum_m!=j w * y_im
-    k = dyadic_wy(dat, type = 'specific_destination', weights = 'im', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
-    tmp = merge(dat, k)
-    for (a in 1:nrow(tmp)) {
-        src = tmp$unit1[a]
-        tar = tmp$unit2[a]
-        w = NULL
-        y = NULL
-        for (b in 1:nrow(tmp)) {
-            if (tmp$unit2[b] != tar) {
-                if (tmp$unit1[b] == src) {
-                    y = c(y, tmp$y[b])
-                    w = c(w, tmp$w[(tmp$unit1 == src) & (tmp$unit2 == tmp$unit2[b])])
-                }
-            }
-        }
-        result = sum(w * y)
-        testthat::expect_equal(result, tmp$wy[a])
-    }
-})
+#test_that('specific destination / row_normalize = FALSE / weights im', {
+    ##y_ij = sum_m!=j w * y_im
+    #k = dyadic_wy(dat, type = 'specific_destination', weights = 'im', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
+    #tmp = merge(dat, k)
+    #for (a in 1:nrow(tmp)) {
+        #src = tmp$unit1[a]
+        #tar = tmp$unit2[a]
+        #w = NULL
+        #y = NULL
+        #for (b in 1:nrow(tmp)) {
+            #if (tmp$unit2[b] != tar) {
+                #if (tmp$unit1[b] == src) {
+                    #y = c(y, tmp$y[b])
+                    #w = c(w, tmp$w[(tmp$unit1 == src) & (tmp$unit2 == tmp$unit2[b])])
+                #}
+            #}
+        #}
+        #result = sum(w * y)
+        #testthat::expect_equal(result, tmp$wy[a])
+    #}
+#})
