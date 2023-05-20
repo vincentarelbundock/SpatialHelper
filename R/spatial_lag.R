@@ -78,14 +78,14 @@ sanity = function(dat,
         is.null(time)) {
         variables = c(origin, destination)
         origin_destination_index = dat[, variables]
-        origin_destination_index = do.call(paste, list(origin_destination_index, collapse = '|'))
+        origin_destination_index = do.call(paste, c(origin_destination_index, sep = '|'))
         checkmate::assert_true(anyDuplicated(origin_destination_index) == 0)
     } else if (!is.null(origin) &&
                !is.null(origin) &&
                !is.null(time)) {
         variables = c(origin, destination, time)
         origin_destination_time_index = dat[, variables]
-        origin_destination_time_index = do.call(paste, origin_destination_time_index, collapse = '|')
+        origin_destination_time_index = do.call(paste, c(origin_destination_time_index, sep = '|'))
         checkmate::assert_true(anyDuplicated(origin_destination_time_index) == 0)
     }
     
