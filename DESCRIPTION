@@ -13,7 +13,8 @@ Imports:
     Matrix (>= 1.2-14),
     checkmate (>= 1.8.5),
     furrr (>= 0.1.0),
-    tidyverse (>= 1.2.1)
+    tidyverse (>= 1.2.1),
+    data.table
 Suggests:
     network (>= 1.13.0.1),
     btergm (>= 1.9.0),

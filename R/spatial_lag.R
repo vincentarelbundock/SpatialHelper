@@ -73,19 +73,19 @@ sanity = function(dat,
     checkmate::assert_numeric(dat[[w]], lower = 0, upper = Inf, any.missing = FALSE)
 
     # duplicate indices
-    if (!is.null(origin) &
-        !is.null(destination) &
+    if (!is.null(origin) &&
+        !is.null(destination) &&
         is.null(time)) {
         variables = c(origin, destination)
         origin_destination_index = dat[, variables]
-        origin_destination_index = apply(origin_destination_index, 1, paste, collapse = '|')
+        origin_destination_index = do.call(paste, list(origin_destination_index, collapse = '|'))
         checkmate::assert_true(anyDuplicated(origin_destination_index) == 0)
-    } else if (!is.null(origin) &
-               !is.null(origin) &
+    } else if (!is.null(origin) &&
+               !is.null(origin) &&
                !is.null(time)) {
         variables = c(origin, destination, time)
         origin_destination_time_index = dat[, variables]
-        origin_destination_time_index = apply(origin_destination_time_index, 1, paste, collapse = '|')
+        origin_destination_time_index = do.call(paste, origin_destination_time_index, collapse = '|')
         checkmate::assert_true(anyDuplicated(origin_destination_time_index) == 0)
     }
     
@@ -257,7 +257,7 @@ dyadic_wy = function(dat,
         dat = dat[order(dat[[origin]], dat[[destination]], dat[[time]]),]
         out = split(dat, dat[[time]])
         out = furrr::future_map(out, f, .progress = progress)
-        out = do.call('rbind', out)
+        out = rbindlist(out)
     }
 
     return(out)
@@ -265,52 +265,54 @@ dyadic_wy = function(dat,
 
 #' Internal function
 #' @inheritParams dyadic_wy
-dyadic_wy_cs = function(dat, 
-                        origin = 'unit1', 
-                        destination = 'unit2', 
-                        y = 'y', 
-                        w = 'w', 
-                        wy = 'wy', 
-                        type = 'specific_origin', 
-                        weights = 'ik', 
-                        row_normalize = TRUE, 
+dyadic_wy_cs = function(dat,
+                        origin = "unit1",
+                        destination = "unit2",
+                        y = "y",
+                        w = "w",
+                        wy = "wy",
+                        type = "specific_origin",
+                        weights = "ik",
+                        row_normalize = TRUE,
                         zero_loop = TRUE) {
-
     # weights
     W = dat[, c(origin, destination, w)]
     if (zero_loop) {
-        W = W[W[[origin]] != W[[destination]],]
+        W = W[W[[origin]] != W[[destination]], ]
     }
-    colnames(W) <- c(strsplit(weights, '')[[1]], 'w')
+    colnames(W) <- c(strsplit(weights, "")[[1]], "w")
     # edges
     Y = dat[, c(origin, destination, y)]
-    colnames(Y) = c('k', 'm', 'y')
+    colnames(Y) = c("k", "m", "y")
     # main loop
-    out = expand.grid('i' = unique(dat[[origin]]),
-                      'j' = unique(dat[[destination]]),
-                      'wy' = NA,
-                      stringsAsFactors = FALSE)
-    for (idx in 1:nrow(out)) {
+    out = data.table::CJ(
+        "i" = unique(dat[[origin]]),
+        "j" = unique(dat[[destination]]),
+        "wy" = NA)
+    for (idx in seq_len(nrow(out))) {
         i = out$i[idx]
         j = out$j[idx]
         Z = Y
         Z$i = i
         Z$j = j
         # aggregate origin: y_ij = sum_k!=i sum_m w * y_km
-        if (type == 'aggregate_origin') {
-            Z = Z[Z$k != i,] 
+        if (type == "aggregate_origin") {
+            Z = Z[Z$k != i, ]
         # aggregate destination: y_ij = sum_k sum_m!=j w * y_km
-        } else if (type == 'aggregate_destination') {
-            Z = Z[Z$m != j,] 
+        } else if (type == "aggregate_destination") {
+            Z = Z[Z$m != j, ]
         # specific origin: y_ij = sum_k!=i w * y_kj
-        } else if (type == 'specific_origin') {
-            Z = Z[(Z$k != i) & (Z$m == j),]
+        } else if (type == "specific_origin") {
+            Z = Z[(Z$k != i) & (Z$m == j), ]
         # specific destination: y_ij = sum_m!=j w * y_im
-        } else if (type == 'specific_destination') {
-            Z = Z[(Z$k == i) & (Z$m != j),] 
-        } 
-        # wy 
-        Z = merge(Z, W)
+        } else if (type == "specific_destination") {
+            Z = Z[(Z$k == i) & (Z$m != j), ]
+        }
+        # wy
+        data.table::setDT(Z)
+        data.table::setDT(W)
+
+        Z = merge(Z, W, by = intersect(colnames(Z), colnames(W)))
         if (row_normalize) {
             Z$w = Z$w / sum(Z$w)
         }
@@ -318,6 +320,8 @@ dyadic_wy_cs = function(dat,
     }
     colnames(out) = c(origin, destination, wy)
     # merge back into dataset
+    data.table::setDT(dat)
     out = merge(dat, out)
+    data.table::setDF(out)
     return(out)
 }

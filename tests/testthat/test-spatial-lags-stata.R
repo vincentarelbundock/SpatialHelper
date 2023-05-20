@@ -9,6 +9,8 @@
 # library(devtools)
 # test() 
 
+skip("no stata test data")
+
 library(here)
 library(testthat)
 library(tidyverse)
