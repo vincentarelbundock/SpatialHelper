@@ -4,8 +4,12 @@
 \alias{undirected_to_directed}
 \title{duplicating rows while inverting origin and destination identifiers.}
 \usage{
-undirected_to_directed(dat, origin = "unit1", destination = "unit2",
-  time = NULL)
+undirected_to_directed(
+  dat,
+  origin = "unit1",
+  destination = "unit2",
+  time = NULL
+)
 }
 \arguments{
 \item{dat}{directed dyadic dataset (data.frame)}

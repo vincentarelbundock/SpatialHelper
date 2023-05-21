@@ -1,6 +1,6 @@
 Package: SpatialHelper
 Title: A collection of helper functions for network analysis (TERGM) and spatial econometrics in R
-Version: 0.1.0.9000
+Version: 0.1.0.9001
 Authors@R: person("Vincent", "Arel-Bundock", email = "vincent.arel-bundock@umontreal.ca", role = c("aut", "cre"))
 Description: This package includes a collection of helper functions for network analysis (TERGM) and spatial econometrics.
 Depends: R (>= 3.3.0)
@@ -19,4 +19,4 @@ Suggests:
     network (>= 1.13.0.1),
     btergm (>= 1.9.0),
     testthat
-RoxygenNote: 6.1.1
+RoxygenNote: 7.2.3.9000

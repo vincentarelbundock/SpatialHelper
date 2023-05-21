@@ -7,6 +7,7 @@ dat$y = sample(as.numeric(dat$w > 2), nrow(dat), replace = TRUE)
 
 test_that('aggregate origin / row_normalize = FALSE', {
     #y_ij = sum_k!=i sum_m w * y_km
+    pkgload::load_all()
     k = dyadic_wy(dat, type = 'aggregate_origin', weights = 'ik', progress = FALSE, row_normalize = FALSE, zero_loop = FALSE)
     tmp = merge(dat, k)
     for (a in 1:nrow(tmp)) {

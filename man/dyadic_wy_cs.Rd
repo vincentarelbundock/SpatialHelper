@@ -4,13 +4,20 @@
 \alias{dyadic_wy_cs}
 \title{Internal function}
 \usage{
-dyadic_wy_cs(dat, origin = "unit1", destination = "unit2", y = "y",
-  w = "w", wy = "wy", type = "specific_origin", weights = "ik",
-  row_normalize = TRUE, zero_loop = TRUE)
+dyadic_wy_cs(
+  datdf,
+  origin = "unit1",
+  destination = "unit2",
+  y = "y",
+  w = "w",
+  wy = "wy",
+  type = "specific_origin",
+  weights = "ik",
+  row_normalize = TRUE,
+  zero_loop = TRUE
+)
 }
 \arguments{
-\item{dat}{directed dyadic dataset (data.frame)}
-
 \item{origin}{name of origin id column (character)}
 
 \item{destination}{name of destination id column (character)}

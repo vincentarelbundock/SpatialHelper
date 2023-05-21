@@ -4,8 +4,17 @@
 \alias{sanity}
 \title{Internal sanity check function}
 \usage{
-sanity(dat, origin = NULL, destination = NULL, w = NULL, y = NULL,
-  wy = NULL, time = NULL, weights = NULL, type = NULL)
+sanity(
+  dat,
+  origin = NULL,
+  destination = NULL,
+  w = NULL,
+  y = NULL,
+  wy = NULL,
+  time = NULL,
+  weights = NULL,
+  type = NULL
+)
 }
 \arguments{
 \item{dat}{directed dyadic dataset (data.frame)}

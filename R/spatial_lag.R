@@ -265,7 +265,8 @@ dyadic_wy = function(dat,
 
 #' Internal function
 #' @inheritParams dyadic_wy
-dyadic_wy_cs = function(dat,
+#' @import data.table
+dyadic_wy_cs = function(datdf,
                         origin = "unit1",
                         destination = "unit2",
                         y = "y",
@@ -276,45 +277,41 @@ dyadic_wy_cs = function(dat,
                         row_normalize = TRUE,
                         zero_loop = TRUE) {
     # weights
-    W = dat[, c(origin, destination, w)]
+    dat = as.data.table(datdf)
+    W = dat[, .SD, .SDcols = c(origin, destination, w)]
     if (zero_loop) {
-        W = W[W[[origin]] != W[[destination]], ]
+        W = W[W[[origin]] != W[[destination]]]
     }
     colnames(W) <- c(strsplit(weights, "")[[1]], "w")
     # edges
-    Y = dat[, c(origin, destination, y)]
+    Y = dat[, .SD, .SDcols = c(origin, destination, y)]
     colnames(Y) = c("k", "m", "y")
     # main loop
     out = data.table::CJ(
         "i" = unique(dat[[origin]]),
         "j" = unique(dat[[destination]]),
         "wy" = NA)
+    byidx <- intersect(colnames(Y), colnames(W))
     for (idx in seq_len(nrow(out))) {
-        i = out$i[idx]
-        j = out$j[idx]
-        Z = Y
-        Z$i = i
-        Z$j = j
+        ival = out$i[idx]
+        jval = out$j[idx]
+        Y[, i := ival]
+        Y[, j := jval]
         # aggregate origin: y_ij = sum_k!=i sum_m w * y_km
         if (type == "aggregate_origin") {
-            Z = Z[Z$k != i, ]
+            Z = merge(Y[k != ival], W)
         # aggregate destination: y_ij = sum_k sum_m!=j w * y_km
         } else if (type == "aggregate_destination") {
-            Z = Z[Z$m != j, ]
+            Z = merge(Y[m != jval], W)
         # specific origin: y_ij = sum_k!=i w * y_kj
         } else if (type == "specific_origin") {
-            Z = Z[(Z$k != i) & (Z$m == j), ]
+            Z = merge(Y[(k != ival) & (m == jval)], W)
         # specific destination: y_ij = sum_m!=j w * y_im
         } else if (type == "specific_destination") {
-            Z = Z[(Z$k == i) & (Z$m != j), ]
+            Z = merge(Y[(k == ival) & (m != jval)], W)
         }
-        # wy
-        data.table::setDT(Z)
-        data.table::setDT(W)
-
-        Z = merge(Z, W, by = intersect(colnames(Z), colnames(W)))
         if (row_normalize) {
-            Z$w = Z$w / sum(Z$w)
+            Z[, w := w / sum(w)]
         }
         out$wy[idx] = sum(Z$w * Z$y)
     }
