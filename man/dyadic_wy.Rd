@@ -5,10 +5,20 @@
 \title{Adds a new Wy column which measures specific/aggregate origin/destination contagion
 (directed dyadic cross-sectional or panel data)}
 \usage{
-dyadic_wy(dat, origin = "unit1", destination = "unit2", y = "y",
-  w = "w", wy = "wy", time = NULL, type = "specific_origin",
-  weights = "ik", row_normalize = TRUE, zero_loop = TRUE,
-  progress = FALSE)
+dyadic_wy(
+  dat,
+  origin = "unit1",
+  destination = "unit2",
+  y = "y",
+  w = "w",
+  wy = "wy",
+  time = NULL,
+  type = "specific_origin",
+  weights = "ik",
+  row_normalize = TRUE,
+  zero_loop = TRUE,
+  progress = FALSE
+)
 }
 \arguments{
 \item{dat}{directed dyadic dataset (data.frame)}
@@ -25,7 +35,7 @@ dyadic_wy(dat, origin = "unit1", destination = "unit2", y = "y",
 
 \item{time}{name of the time variable (optional) (character)}
 
-\item{type}{of W matrix (character) 
+\item{type}{of W matrix (character)
 \itemize{
   \item specific origin: y_ij = f(sum_k!=i w * y_kj)
   \item specific destination: y_ij = f(sum_m!=j w * y_im)

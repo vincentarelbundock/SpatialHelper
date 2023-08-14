@@ -2,10 +2,19 @@
 % Please edit documentation in R/spatial_lag.R
 \name{sanity}
 \alias{sanity}
-\title{Internal sanity check function}
+\title{SpatialHelper}
 \usage{
-sanity(dat, origin = NULL, destination = NULL, w = NULL, y = NULL,
-  wy = NULL, time = NULL, weights = NULL, type = NULL)
+sanity(
+  dat,
+  origin = NULL,
+  destination = NULL,
+  w = NULL,
+  y = NULL,
+  wy = NULL,
+  time = NULL,
+  weights = NULL,
+  type = NULL
+)
 }
 \arguments{
 \item{dat}{directed dyadic dataset (data.frame)}
@@ -24,7 +33,7 @@ sanity(dat, origin = NULL, destination = NULL, w = NULL, y = NULL,
 
 \item{weights}{weight specification: ik, jk, im, jm (character)}
 
-\item{type}{of W matrix (character) 
+\item{type}{of W matrix (character)
 \itemize{
   \item specific origin: y_ij = f(sum_k!=i w * y_kj)
   \item specific destination: y_ij = f(sum_m!=j w * y_im)
@@ -33,5 +42,5 @@ sanity(dat, origin = NULL, destination = NULL, w = NULL, y = NULL,
 }}
 }
 \description{
-Internal sanity check function
+SpatialHelper
 }

@@ -13,6 +13,7 @@ library(here)
 library(testthat)
 library(tidyverse)
 library(SpatialHelper)
+skip("Must run stata tests")
 setwd(here::here('tests/testthat'))
 
 ## simulate data

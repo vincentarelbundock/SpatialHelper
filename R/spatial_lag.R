@@ -1,7 +1,13 @@
+#' SpatialHelper
+#'
+#' @import data.table
+#'
+
+
 #' Internal sanity check function
 #'
 #' @inheritParams dyadic_wy
-sanity = function(dat, 
+sanity = function(dat,
                   origin = NULL,
                   destination = NULL,
                   w = NULL,
@@ -10,7 +16,6 @@ sanity = function(dat,
                   time = NULL,
                   weights = NULL,
                   type = NULL) {
-
     # argument type
     checkmate::assert_string(origin, null.ok = TRUE)
     checkmate::assert_string(destination, null.ok = TRUE)
@@ -23,22 +28,23 @@ sanity = function(dat,
     checkmate::assert_data_frame(dat, null.ok = TRUE)
 
     if (!is.null(type)) {
-        checkmate::assert_true(type %in% c("aggregate_origin", "aggregate_destination", 
-                                           "specific_origin", "specific_destination"))
+        checkmate::assert_true(type %in% c(
+            "aggregate_origin", "aggregate_destination",
+            "specific_origin", "specific_destination"))
         if (!is.null(weights)) {
             # Neumayer rules from Stata documentation
             # TODO: Write more tests if you want access to the others
-            if (type == 'specific_origin') {
-                checkmate::assert_true(weights %in% c("ik", "ki")) 
+            if (type == "specific_origin") {
+                checkmate::assert_true(weights %in% c("ik", "ki"))
                 # c("ik", "ki", "im", "mi", "jm", "mj", "jk", "kj"))
-            } else if (type == 'specific_destination') {
-                checkmate::assert_true(weights %in% c("jm", "mj")) 
+            } else if (type == "specific_destination") {
+                checkmate::assert_true(weights %in% c("jm", "mj"))
                 # c("ik", "ki", "im", "mi", "jm", "mj", "jk", "kj")
-            } else if (type == 'aggregate_origin') {
-                checkmate::assert_true(weights %in% c("ik", "ki")) 
+            } else if (type == "aggregate_origin") {
+                checkmate::assert_true(weights %in% c("ik", "ki"))
                 # c("ik", "ki", "im", "mi"))
-            } else if (type == 'aggregate_destination') {
-                checkmate::assert_true(weights %in% c("jm", "mj")) 
+            } else if (type == "aggregate_destination") {
+                checkmate::assert_true(weights %in% c("jm", "mj"))
                 # c("jm", "mj", "jk", "kj"))
             }
         }
@@ -78,19 +84,19 @@ sanity = function(dat,
         is.null(time)) {
         variables = c(origin, destination)
         origin_destination_index = dat[, variables]
-        origin_destination_index = apply(origin_destination_index, 1, paste, collapse = '|')
+        origin_destination_index = apply(origin_destination_index, 1, paste, collapse = "|")
         checkmate::assert_true(anyDuplicated(origin_destination_index) == 0)
     } else if (!is.null(origin) &
-               !is.null(origin) &
-               !is.null(time)) {
+        !is.null(origin) &
+        !is.null(time)) {
         variables = c(origin, destination, time)
         origin_destination_time_index = dat[, variables]
-        origin_destination_time_index = apply(origin_destination_time_index, 1, paste, collapse = '|')
+        origin_destination_time_index = apply(origin_destination_time_index, 1, paste, collapse = "|")
         checkmate::assert_true(anyDuplicated(origin_destination_time_index) == 0)
     }
-    
+
     # rectangular data: assumes directed dyads. assumes self-weights exist (not NA but could be zero)
-    units = c(dat[[origin]], dat[[ destination]])
+    units = c(dat[[origin]], dat[[destination]])
     units = unique(units)
     if (is.null(time)) {
         n = length(unique(units))**2
@@ -106,29 +112,28 @@ sanity = function(dat,
 }
 
 #' duplicating rows while inverting origin and destination identifiers.
-#' 
+#'
 #' @param dat directed dyadic dataset (data.frame)
 #' @param origin name of origin id column (character)
 #' @param destination name of destination id column (character)
 #' @inheritParams dyadic_wy
-#' 
+#'
 #' @export
-undirected_to_directed = function(dat, origin = 'unit1', destination = 'unit2', time = NULL) {
-
+undirected_to_directed = function(dat, origin = "unit1", destination = "unit2", time = NULL) {
     # sanity
     if (is.null(time)) {
-        idx = ifelse(dat[[origin]] <= dat[[destination]], 
-                     paste(dat[[origin]], dat[[destination]], sep = ' | '),
-                     paste(dat[[destination]], dat[[origin]], sep = ' | '))
+        idx = ifelse(dat[[origin]] <= dat[[destination]],
+            paste(dat[[origin]], dat[[destination]], sep = " | "),
+            paste(dat[[destination]], dat[[origin]], sep = " | "))
         if (anyDuplicated(idx)) {
-            stop('There are duplicate origin-destination/destination-origin obervations.')
+            stop("There are duplicate origin-destination/destination-origin obervations.")
         }
     } else {
-        idx = ifelse(dat[[origin]] <= dat[[destination]], 
-                     paste(dat[[origin]], dat[[destination]], dat[[time]], sep = ' | '),
-                     paste(dat[[destination]], dat[[origin]], dat[[time]], sep = ' | '))
+        idx = ifelse(dat[[origin]] <= dat[[destination]],
+            paste(dat[[origin]], dat[[destination]], dat[[time]], sep = " | "),
+            paste(dat[[destination]], dat[[origin]], dat[[time]], sep = " | "))
         if (anyDuplicated(idx)) {
-            stop('There are duplicate origin-destination-time/destination-origin-time obervations.')
+            stop("There are duplicate origin-destination-time/destination-origin-time obervations.")
         }
     }
     # duplicate + switch index + rbind
@@ -142,11 +147,11 @@ undirected_to_directed = function(dat, origin = 'unit1', destination = 'unit2', 
 }
 
 #' Internal function to apply to a cross-section
-#' 
+#'
 #' @inheritParams dyadic_wy
-monadic_w_cs = function(dat, origin = 'unit1', destination = 'unit2', w = 'w') {
+monadic_w_cs = function(dat, origin = "unit1", destination = "unit2", w = "w") {
     tmp = dat[, c(origin, destination, w)]
-    W = stats::reshape(tmp, idvar = origin, timevar = destination, direction = 'wide')
+    W = stats::reshape(tmp, idvar = origin, timevar = destination, direction = "wide")
     idx = W[[1]]
     W = W[, 2:ncol(W)]
     colnames(W) = row.names(W) = idx
@@ -163,25 +168,26 @@ monadic_w_cs = function(dat, origin = 'unit1', destination = 'unit2', w = 'w') {
 #' @param time name of the (optional) time variable column (character)
 #' @param row_normalize should each value of the W matrix be divided by the
 #' row-wise sum? (boolean)
-#' @inheritParams dyadic_wy
 #'
 #' @export
-monadic_w = function(dat, origin = 'unit1', destination = 'unit2', w = 'w', 
+monadic_w = function(dat, origin = "unit1", destination = "unit2", w = "w",
                      time = NULL, row_normalize = TRUE) {
     # sanity checks
     sanity(dat, origin = origin, destination = destination, w = w, time = time)
     # cross-section
     if (is.null(time)) {
-        dat = dat[order(dat[[origin]], dat[[destination]]),]
+        dat = dat[order(dat[[origin]], dat[[destination]]), ]
         out = monadic_w_cs(dat, origin = origin, destination = destination, w = w)
-    # panel
+        # panel
     } else {
-        dat = dat[order(dat[[origin]], dat[[destination]], dat[[time]]),]
+        dat = dat[order(dat[[origin]], dat[[destination]], dat[[time]]), ]
         out = split(dat, dat[[time]])
-        out = lapply(out, function(x) 
-                     monadic_w_cs(x, origin = origin, destination = destination, w = w))
-        idx = lapply(names(out), function(x) 
-                     paste(colnames(out[[x]]), x, sep = '|'))
+        out = lapply(out, function(x) {
+            monadic_w_cs(x, origin = origin, destination = destination, w = w)
+        })
+        idx = lapply(names(out), function(x) {
+            paste(colnames(out[[x]]), x, sep = "|")
+        })
         idx = unlist(idx)
         out = Matrix::bdiag(out)
         colnames(out) = row.names(out) = idx
@@ -205,7 +211,7 @@ monadic_w = function(dat, origin = 'unit1', destination = 'unit2', w = 'w',
 #' @param y name of outcome to lag (character)
 #' @param wy name of the output variable (character)
 #' @param time name of the time variable (optional) (character)
-#' @param type of W matrix (character) 
+#' @param type of W matrix (character)
 #' \itemize{
 #'   \item specific origin: y_ij = f(sum_k!=i w * y_kj)
 #'   \item specific destination: y_ij = f(sum_m!=j w * y_im)
@@ -220,104 +226,115 @@ monadic_w = function(dat, origin = 'unit1', destination = 'unit2', w = 'w',
 #' `plan(multiprocess)` and panel data (`time != NULL`).
 #'
 #' @export
-dyadic_wy = function(dat, 
-                     origin = 'unit1', 
-                     destination = 'unit2', 
-                     y = 'y', 
-                     w = 'w', 
-                     wy = 'wy', 
+dyadic_wy = function(dat,
+                     origin = "unit1",
+                     destination = "unit2",
+                     y = "y",
+                     w = "w",
+                     wy = "wy",
                      time = NULL,
-                     type = 'specific_origin', 
-                     weights = 'ik', 
-                     row_normalize = TRUE, 
+                     type = "specific_origin",
+                     weights = "ik",
+                     row_normalize = TRUE,
                      zero_loop = TRUE,
                      progress = FALSE) {
-
     # sanity checks
     sanity(dat, origin = origin, destination = destination, w = w, y = y, time = time, weights = weights, type = type)
 
 
     # inner loop function
-    f = function(x) 
+    f = function(x) {
         dyadic_wy_cs(x,
-                     origin = origin, destination = destination, w = w, y = y, wy = wy,
-                     type = type, weights = weights, row_normalize = row_normalize, 
-                     zero_loop = zero_loop)
+            origin = origin, destination = destination, w = w, y = y, wy = wy,
+            type = type, weights = weights, row_normalize = row_normalize,
+            zero_loop = zero_loop)
+    }
 
     # cross-section
     if (is.null(time)) {
-        dat = dat[order(dat[[origin]], dat[[destination]]),]
+        dat = dat[order(dat[[origin]], dat[[destination]]), ]
         out = f(dat)
         if (progress) {
-            warning('progress argument only works with `plan(multiprocess)` and panel data (`time != NULL`).')
+            warning("progress argument only works with `plan(multiprocess)` and panel data (`time != NULL`).")
         }
 
-    # panel
+        # panel
     } else {
-        dat = dat[order(dat[[origin]], dat[[destination]], dat[[time]]),]
+        dat = dat[order(dat[[origin]], dat[[destination]], dat[[time]]), ]
         out = split(dat, dat[[time]])
         out = furrr::future_map(out, f, .progress = progress)
-        out = do.call('rbind', out)
+        out = data.table::rbindlist(out)
     }
 
+    data.table::setDF(out)
     return(out)
 }
 
 #' Internal function
 #' @inheritParams dyadic_wy
-dyadic_wy_cs = function(dat, 
-                        origin = 'unit1', 
-                        destination = 'unit2', 
-                        y = 'y', 
-                        w = 'w', 
-                        wy = 'wy', 
-                        type = 'specific_origin', 
-                        weights = 'ik', 
-                        row_normalize = TRUE, 
+dyadic_wy_cs = function(dat,
+                        origin = "unit1",
+                        destination = "unit2",
+                        y = "y",
+                        w = "w",
+                        wy = "wy",
+                        type = "specific_origin",
+                        weights = "ik",
+                        row_normalize = TRUE,
                         zero_loop = TRUE) {
+    data.table::setDT(dat)
+    dat = as.data.table(dat)
 
     # weights
-    W = dat[, c(origin, destination, w)]
+    idx = c(origin, destination, w)
+    W = dat[, ..idx]
     if (zero_loop) {
-        W = W[W[[origin]] != W[[destination]],]
+        W = W[W[[origin]] != W[[destination]], ]
     }
-    colnames(W) <- c(strsplit(weights, '')[[1]], 'w')
+    colnames(W) <- c(strsplit(weights, "")[[1]], "w")
+
     # edges
-    Y = dat[, c(origin, destination, y)]
-    colnames(Y) = c('k', 'm', 'y')
+    idx = c(origin, destination, y)
+    Y = dat[, ..idx]
+    colnames(Y) = c("k", "m", "y")
+
     # main loop
-    out = expand.grid('i' = unique(dat[[origin]]),
-                      'j' = unique(dat[[destination]]),
-                      'wy' = NA,
-                      stringsAsFactors = FALSE)
+    out = CJ(
+        "i" = unique(dat[[origin]]),
+        "j" = unique(dat[[destination]]),
+        "wy" = NA)
     for (idx in 1:nrow(out)) {
-        i = out$i[idx]
-        j = out$j[idx]
-        Z = Y
-        Z$i = i
-        Z$j = j
+        i_lit = out$i[idx]
+        j_lit = out$j[idx]
+        Z = copy(Y)
+        Z[, i := i_lit]
+        Z[, j := j_lit]
         # aggregate origin: y_ij = sum_k!=i sum_m w * y_km
-        if (type == 'aggregate_origin') {
-            Z = Z[Z$k != i,] 
-        # aggregate destination: y_ij = sum_k sum_m!=j w * y_km
-        } else if (type == 'aggregate_destination') {
-            Z = Z[Z$m != j,] 
-        # specific origin: y_ij = sum_k!=i w * y_kj
-        } else if (type == 'specific_origin') {
-            Z = Z[(Z$k != i) & (Z$m == j),]
-        # specific destination: y_ij = sum_m!=j w * y_im
-        } else if (type == 'specific_destination') {
-            Z = Z[(Z$k == i) & (Z$m != j),] 
-        } 
-        # wy 
+        if (type == "aggregate_origin") {
+            Z = Z[k != i_lit, ]
+            # aggregate destination: y_ij = sum_k sum_m!=j w * y_km
+        } else if (type == "aggregate_destination") {
+            Z = Z[m != j_lit, ]
+            # specific origin: y_ij = sum_k!=i w * y_kj
+        } else if (type == "specific_origin") {
+            Z = Z[(k != i_lit) & (m == j_lit), ]
+            # specific destination: y_ij = sum_m!=j w * y_im
+        } else if (type == "specific_destination") {
+            Z = Z[(k == i_lit) & (m != j_lit), ]
+        }
+        # wy
         Z = merge(Z, W)
         if (row_normalize) {
-            Z$w = Z$w / sum(Z$w)
+            Z[, w := w / sum(w)]
         }
-        out$wy[idx] = sum(Z$w * Z$y)
+        out$wy[idx] = Z[, sum(w * y)]
     }
     colnames(out) = c(origin, destination, wy)
     # merge back into dataset
     out = merge(dat, out)
+
+    data.table::setDF(dat)
+    data.table::setDF(out)
+
     return(out)
 }

@@ -129,11 +129,6 @@ prep_variable = function(dyad_crosssection, v) {
 #' `time`. Additional columns are vertex attributes
 #' @param cores integer number of cores to use for computation with mclapply
 #' @param verbose print progress report if TRUE
-#' @examples
-#' \dontrun{
-#'   # Examples are in the README file at
-#'   http://github.com/vincentarelbundock/SpatialHelper
-#; }
 #' @export
 panel_to_network = function(unit_time, dyad_time, cores = 1, verbose = TRUE) {
     # sanity checks pre

@@ -12,10 +12,11 @@ BugReports: https://github.com/vincentarelbundock/SpatialHelper/issues
 Imports: 
     Matrix (>= 1.2-14),
     checkmate (>= 1.8.5),
+    data.table,
     furrr (>= 0.1.0),
     tidyverse (>= 1.2.1)
 Suggests:
     network (>= 1.13.0.1),
     btergm (>= 1.9.0),
     testthat
-RoxygenNote: 6.1.1
+RoxygenNote: 7.2.3.9000
