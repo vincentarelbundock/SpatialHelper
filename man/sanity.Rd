@@ -2,7 +2,7 @@
 % Please edit documentation in R/spatial_lag.R
 \name{sanity}
 \alias{sanity}
-\title{SpatialHelper}
+\title{Internal sanity check function}
 \usage{
 sanity(
   dat,
@@ -42,5 +42,5 @@ sanity(
 }}
 }
 \description{
-SpatialHelper
+Internal sanity check function
 }

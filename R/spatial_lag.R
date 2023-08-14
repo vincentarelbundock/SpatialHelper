@@ -1,7 +1,3 @@
-#' SpatialHelper
-#'
-#' @import data.table
-#'
 
 
 #' Internal sanity check function
@@ -224,6 +220,7 @@ monadic_w = function(dat, origin = "unit1", destination = "unit2", w = "w",
 #' @param zero_loop should wy be set to 0 when origin == destination (boolean)
 #' @param progress boolean show progress bar (boolean). Only works with
 #' `plan(multiprocess)` and panel data (`time != NULL`).
+#' @import data.table
 #'
 #' @export
 dyadic_wy = function(dat,
@@ -272,6 +269,7 @@ dyadic_wy = function(dat,
 
 #' Internal function
 #' @inheritParams dyadic_wy
+#' @import data.table
 dyadic_wy_cs = function(dat,
                         origin = "unit1",
                         destination = "unit2",

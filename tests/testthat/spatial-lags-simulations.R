@@ -1,3 +1,5 @@
+testthat::skip("save simulation results")
+
 library(here)
 library(tidyverse)
 setwd(here::here('tests/testthat'))
